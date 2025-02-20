@@ -10,7 +10,7 @@ A mod that allows you to assign a fake rating to online levels.
 - [Uproxide](https://gdbrowser.com/u/25397826) - Creator of the More Difficulties mod
 - [ItzKiba](https://gdbrowser.com/u/4569963) - Creator of the Grandpa Demon mod
 - [Minemaker0430](https://gdbrowser.com/u/6635071) - Creator of the GDDP Integration mod
-- [hiimjustin000](https://gdbrowser.com/u/7466002) - Creator of the Demons In Between mod and this mod
+- [hiimjasmine00](https://gdbrowser.com/u/7466002) - Creator of the Demons In Between mod and this mod
 
 ## Gallery
 ![Fake Rate Popup](./resources/fake-rate-popup.png)\

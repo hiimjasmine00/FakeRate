@@ -1,4 +1,7 @@
 #include "FakeRate.hpp"
+#include <Geode/binding/GJGameLevel.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
@@ -48,52 +51,29 @@ void FakeRate::toggle(CCNode* node, bool enabled) {
 }
 
 CCPoint FakeRate::getDIBOffset(int difficulty, GJDifficultyName name) {
-    if (name == GJDifficultyName::Long) switch (difficulty) {
-        case 1: return { 0.0f, -5.0f };
-        case 2: return { 0.125f, -5.0f };
-        case 3: return { 0.0f, -5.0f };
-        case 4: return { 0.0f, -5.125f };
-        case 5: return { 0.25f, -5.0f };
-        case 6: return { 0.125f, -4.75f };
-        case 7: return { 0.0f, -5.0f };
-        case 8: return { 0.0f, -4.125f };
-        case 9: return { -0.125f, -4.125f };
-        case 10: return { 0.0f, -4.0f };
-        case 11: return { -0.125f, -4.125f };
-        case 12: return { 0.0f, -4.125f };
-        case 13: return { 0.125f, -4.125f };
-        case 14: return { 0.0f, -4.125f };
-        case 15: return { 0.0f, -4.125f };
-        case 16: return { 0.0f, -3.625f };
-        case 17: return { 0.0f, -3.625f };
-        case 18: return { 0.0f, -3.5f };
-        case 19: return { 0.0f, -3.5f };
-        case 20: return { 0.0f, -3.5f };
+    switch (difficulty) {
+        case 1: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.0f } : CCPoint { -0.125f, -0.25f };
+        case 2: return name == GJDifficultyName::Long ? CCPoint { 0.125f, -5.0f } : CCPoint { -0.125f, -0.25f };
+        case 3: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.0f } : CCPoint { -0.125f, -0.25f };
+        case 4: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.125f } : CCPoint { -0.125f, -0.375f };
+        case 5: return name == GJDifficultyName::Long ? CCPoint { 0.25f, -5.0f } : CCPoint { -0.125f, -0.25f };
+        case 6: return name == GJDifficultyName::Long ? CCPoint { 0.125f, -4.75f } : CCPoint { -0.125f, -0.25f };
+        case 7: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.0f } : CCPoint { -0.125f, -0.375f };
+        case 8: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { -0.125f, 0.5f };
+        case 9: return name == GJDifficultyName::Long ? CCPoint { -0.125f, -4.125f } : CCPoint { -0.125f, 0.5f };
+        case 10: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.0f } : CCPoint { -0.125f, 0.25f };
+        case 11: return name == GJDifficultyName::Long ? CCPoint { -0.125f, -4.125f } : CCPoint { -0.125f, 0.5f };
+        case 12: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { 0.125f, 0.5f };
+        case 13: return name == GJDifficultyName::Long ? CCPoint { 0.125f, -4.125f } : CCPoint { 0.125f, 0.5f };
+        case 14: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { 0.125f, 0.5f };
+        case 15: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { 0.0f, 0.5f };
+        case 16: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.625f } : CCPoint { 0.0f, 1.25f };
+        case 17: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.625f } : CCPoint { 0.0f, 1.25f };
+        case 18: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.5f } : CCPoint { 0.0f, 1.125f };
+        case 19: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.5f } : CCPoint { 0.0f, 1.125f };
+        case 20: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.5f } : CCPoint { 0.0f, 1.125f };
+        default: return CCPoint { 0.0f, 0.0f };
     }
-    else if (name == GJDifficultyName::Short) switch (difficulty) {
-        case 1: return { -0.125f, -0.25f };
-        case 2: return { -0.125f, -0.25f };
-        case 3: return { -0.125f, -0.25f };
-        case 4: return { -0.125f, -0.375f };
-        case 5: return { -0.125f, -0.25f };
-        case 6: return { -0.125f, -0.25f };
-        case 7: return { -0.125f, -0.375f };
-        case 8: return { -0.125f, 0.5f };
-        case 9: return { -0.125f, 0.5f };
-        case 10: return { -0.125f, 0.25f };
-        case 11: return { -0.125f, 0.5f };
-        case 12: return { 0.125f, 0.5f };
-        case 13: return { 0.125f, 0.5f };
-        case 14: return { 0.125f, 0.5f };
-        case 15: return { 0.0f, 0.5f };
-        case 16: return { 0.0f, 1.25f };
-        case 17: return { 0.0f, 1.25f };
-        case 18: return { 0.0f, 1.125f };
-        case 19: return { 0.0f, 1.125f };
-        case 20: return { 0.0f, 1.125f };
-    }
-
-    return { 0.0f, 0.0f };
 }
 
 int FakeRate::getGRDOverride(CCSprite* sprite) {
@@ -146,4 +126,38 @@ std::string FakeRate::getGDDPFrame(int difficulty, GJDifficultyName name) {
     }
 
     return fmt::format("minemaker0430.gddp_integration/DP_{}{}Text.png", diff, name == GJDifficultyName::Short ? "Small" : "");
+}
+
+Result<std::vector<FakeRateSaveData>> matjson::Serialize<std::vector<FakeRateSaveData>>::fromJson(const matjson::Value& value) {
+    if (!value.isArray()) return Err("Expected array");
+
+    return Ok(ranges::map<std::vector<FakeRateSaveData>>(value.asArray().unwrap(), [](const matjson::Value& item) {
+        return FakeRateSaveData {
+            .id = (int)item["id"].asInt().unwrapOr(0),
+            .stars = (int)item["stars"].asInt().unwrapOr(0),
+            .feature = (int)item["feature"].asInt().unwrapOr(0),
+            .difficulty = (int)item["difficulty"].asInt().unwrapOr(0),
+            .moreDifficultiesOverride = (int)item["more-difficulties-override"].asInt().unwrapOr(0),
+            .grandpaDemonOverride = (int)item["grandpa-demon-override"].asInt().unwrapOr(0),
+            .demonsInBetweenOverride = (int)item["demons-in-between-override"].asInt().unwrapOr(0),
+            .gddpIntegrationOverride = (int)item["gddp-integration-override"].asInt().unwrapOr(0),
+            .coins = item["coins"].asBool().unwrapOr(true)
+        };
+    }));
+}
+
+matjson::Value matjson::Serialize<std::vector<FakeRateSaveData>>::toJson(const std::vector<FakeRateSaveData>& vec) {
+    return ranges::map<std::vector<matjson::Value>>(vec, [](const FakeRateSaveData& item) {
+        return matjson::makeObject({
+            { "id", item.id },
+            { "stars", item.stars },
+            { "feature", item.feature },
+            { "difficulty", item.difficulty },
+            { "more-difficulties-override", item.moreDifficultiesOverride },
+            { "grandpa-demon-override", item.grandpaDemonOverride },
+            { "demons-in-between-override", item.demonsInBetweenOverride },
+            { "gddp-integration-override", item.gddpIntegrationOverride },
+            { "coins", item.coins }
+        });
+    });
 }

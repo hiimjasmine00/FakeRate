@@ -3,12 +3,19 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 
-project(FakeRate VERSION 1.4.10)
+project(FakeRate VERSION 1.4.11)
 
 add_library(${PROJECT_NAME} SHARED
+    src/classes/FRDIBPopup.cpp
     src/classes/FREditPopup.cpp
     src/classes/FREffects.cpp
+    src/classes/FRGDDPPopup.cpp
+    src/classes/FRGRDPopup.cpp
+    src/classes/FRSetDifficultyPopup.cpp
+    src/classes/FRSetFeaturePopup.cpp
+    src/classes/FRSetStarsPopup.cpp
     src/classes/TableNode.cpp
     src/hooks/LevelCell.cpp
     src/hooks/LevelInfoLayer.cpp

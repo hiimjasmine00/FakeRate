@@ -1,9 +1,14 @@
 #include "../classes/FREditPopup.hpp"
 #include "../classes/FREffects.hpp"
+#include <Geode/binding/GameStatsManager.hpp>
+#include <Geode/binding/GJDifficultySprite.hpp>
+#include <Geode/binding/GJGameLevel.hpp>
+#include <Geode/modify/LevelInfoLayer.hpp>
+#include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
-#include <Geode/modify/LevelInfoLayer.hpp>
 class $modify(FRLevelInfoLayer, LevelInfoLayer) {
     struct Fields {
         FakeRateSaveData m_fakeRateData;
@@ -18,7 +23,6 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
     static void onModify(auto& self) {
         (void)self.setHookPriority("LevelInfoLayer::init", -100);
         (void)self.setHookPriority("LevelInfoLayer::levelDownloadFinished", -100);
-        (void)self.setHookPriority("LevelInfoLayer::levelUpdateFinished", -100);
         (void)self.setHookPriority("LevelInfoLayer::likedItem", -100);
     }
 
@@ -49,11 +53,6 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         checkFakeRate();
     }
 
-    void levelUpdateFinished(GJGameLevel* level, UpdateResponse response) override {
-        LevelInfoLayer::levelUpdateFinished(level, response);
-        checkFakeRate();
-    }
-
     void likedItem(LikeItemType type, int id, bool liked) override {
         LevelInfoLayer::likedItem(type, id, liked);
         checkFakeRate();
@@ -61,30 +60,47 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
 
     void checkFakeRate() {
         auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
-        auto it = std::find_if(vec.begin(), vec.end(), [this](FakeRateSaveData const& item) { return item.id == m_level->m_levelID; });
-        auto stars = m_level->m_stars.value();
-        auto starsRequested = m_level->m_starsRequested;
+        auto level = m_level;
+        auto levelID = level->m_levelID.value();
+        auto i = ranges::indexOf(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
+        auto stars = level->m_stars.value();
+        auto starsRequested = level->m_starsRequested;
         auto grandpaDemon = static_cast<CCSprite*>(getChildByID("grd-difficulty"));
         auto demonInBetween = static_cast<CCSprite*>(getChildByID("hiimjustin000.demons_in_between/between-difficulty-sprite"));
         auto gddpDifficulty = static_cast<CCSprite*>(getChildByID("gddp-difficulty"));
         auto gddpOverride = Loader::get()->isModLoaded("minemaker0430.gddp_integration") ?
             Loader::get()->getLoadedMod("minemaker0430.gddp_integration")->getSettingValue<bool>("override-grandpa-demon") : false;
-        if (it != vec.end()) updateFakeRate(*it, false);
-        else m_fields->m_fakeRateData = {
-            .id = m_level->m_levelID,
-            .stars = stars,
-            .feature = m_level->m_featured > 1 ? m_level->m_isEpic + 1 : 0,
-            .difficulty = FakeRate::getDifficultyFromLevel(m_level),
-            .moreDifficultiesOverride = Loader::get()->isModLoaded("uproxide.more_difficulties") ? stars == 4 || stars == 7 || stars == 9 ? stars :
-                stars == 0 && (starsRequested == 4 || starsRequested == 7 || starsRequested == 9) ? starsRequested : 0 : 0,
-            .grandpaDemonOverride = grandpaDemon && (!gddpOverride || !gddpDifficulty) ? FakeRate::getGRDOverride(grandpaDemon) : 0,
-            .demonsInBetweenOverride = demonInBetween ? FakeRate::getDIBOverride(demonInBetween) : 0,
-            .gddpIntegrationOverride = gddpDifficulty && (!grandpaDemon || gddpOverride) && !demonInBetween ? FakeRate::getGDDPOverride(gddpDifficulty) : 0,
-            .coins = m_level->m_coinsVerified > 0
-        };
+        if (i.has_value()) updateFakeRate(vec[i.value()], false);
+        else {
+            auto mdo = 0;
+            if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties")) {
+                auto casual = moreDifficulties->getSavedValue<bool>("casual", true);
+                auto tough = moreDifficulties->getSavedValue<bool>("tough", true);
+                auto cruel = moreDifficulties->getSavedValue<bool>("cruel", true);
+                if (stars == 4 && casual) mdo = 4;
+                else if (stars == 7 && tough) mdo = 7;
+                else if (stars == 9 && cruel) mdo = 9;
+                else if (stars == 0) {
+                    if (starsRequested == 4 && casual) mdo = 4;
+                    else if (starsRequested == 7 && tough) mdo = 7;
+                    else if (starsRequested == 9 && cruel) mdo = 9;
+                }
+            }
+            m_fields->m_fakeRateData = {
+                .id = level->m_levelID,
+                .stars = stars,
+                .feature = level->m_featured > 1 ? level->m_isEpic + 1 : 0,
+                .difficulty = FakeRate::getDifficultyFromLevel(m_level),
+                .moreDifficultiesOverride = mdo,
+                .grandpaDemonOverride = grandpaDemon && (!gddpOverride || !gddpDifficulty) ? FakeRate::getGRDOverride(grandpaDemon) : 0,
+                .demonsInBetweenOverride = demonInBetween ? FakeRate::getDIBOverride(demonInBetween) : 0,
+                .gddpIntegrationOverride = gddpDifficulty && (!grandpaDemon || gddpOverride) && !demonInBetween ? FakeRate::getGDDPOverride(gddpDifficulty) : 0,
+                .coins = level->m_coinsVerified > 0
+            };
+        }
     }
 
-    void updateFakeRate(FakeRateSaveData data, bool remove) {
+    void updateFakeRate(const FakeRateSaveData& data, bool remove) {
         auto stars = data.stars;
         auto feature = data.feature;
         auto difficulty = data.difficulty;
@@ -93,9 +109,11 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         auto dbo = data.demonsInBetweenOverride;
         auto gio = data.gddpIntegrationOverride;
         auto coins = data.coins;
+        auto level = m_level;
+        auto levelID = level->m_levelID.value();
         auto f = m_fields.self();
         f->m_fakeRateData = {
-            .id = m_level->m_levelID,
+            .id = levelID,
             .stars = stars,
             .feature = feature,
             .difficulty = difficulty,
@@ -179,8 +197,10 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
                 featureGlow->setPosition(m_difficultySprite->getContentSize() / 2);
             f->m_fakeRateData.grandpaDemonOverride = hasDemon && remove ? FakeRate::getGRDOverride(static_cast<CCSprite*>(getChildByID("grd-difficulty"))) : gdo;
         }
+
         auto gsm = GameStatsManager::get();
-        auto showStars = stars != 0 || m_level->m_dailyID > 0 || m_level->m_gauntletLevel;
+        auto dailyID = level->m_dailyID.value();
+        auto showStars = stars != 0 || dailyID > 0 || level->m_gauntletLevel;
         m_difficultySprite->updateFeatureState((GJFeatureState)feature);
         m_difficultySprite->updateDifficultyFrame(difficulty, GJDifficultyName::Long);
         auto isDemon = difficulty > 5 || gdo > 0 || dbo > 0 || gio > 0;
@@ -192,28 +212,31 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         m_starsLabel->setString(std::to_string(stars).c_str());
         m_starsLabel->setVisible(showStars);
         if (gsm->hasCompletedLevel(m_level)) m_starsLabel->setColor({ 255, 255, 50 });
+
+        auto coinY = position.y - 31.5f - (showStars ? 14.0f : 0.0f) - (level->m_gauntletLevel || dailyID > 0 ? 14.5f : 0.0f) - (isDemon ? 9.0f : 0.0f);
+        auto coinSuffix = dailyID > 0 ? fmt::format("_{}", dailyID) : level->m_gauntletLevel ? "_g" : "";
         for (int i = 0; i < m_coins->count(); i++) {
             auto coin = static_cast<CCSprite*>(m_coins->objectAtIndex(i));
-            coin->setPositionY(position.y - 31.5f - (showStars ? 14.0f : 0.0f)
-                - (m_level->m_gauntletLevel || m_level->m_dailyID > 0 ? 14.5f : 0.0f) - (isDemon ? 9.0f : 0.0f));
-            auto coinStr = fmt::format("{}_{}", m_level->m_levelID.value(), i + 1);
-            if (m_level->m_dailyID > 0) coinStr += "_" + std::to_string(m_level->m_dailyID);
-            else if (m_level->m_gauntletLevel) coinStr += "_g";
+            coin->setPositionY(coinY);
+            auto coinStr = fmt::format("{}_{}{}", levelID, i + 1, coinSuffix);
             auto hasCoin = gsm->hasUserCoin(coinStr.c_str()) || gsm->hasPendingUserCoin(coinStr.c_str());
             if (coins) coin->setColor(hasCoin ? ccColor3B { 255, 255, 255 } : ccColor3B { 165, 165, 165 });
             else coin->setColor(hasCoin ? ccColor3B { 255, 175, 75 } : ccColor3B { 165, 113, 48 });
         }
-        if (m_level->m_dailyID > 0 || m_level->m_gauntletLevel) {
+
+        auto normalPercent = level->m_normalPercent.value();
+        if (dailyID > 0 || level->m_gauntletLevel) {
             auto diamondLabel = static_cast<CCLabelBMFont*>(getChildByID("diamond-label"));
             auto diamondIcon = getChildByID("diamond-icon");
             auto diamonds = stars > 1 ? stars + 2 : 0;
-            diamondLabel->setString(fmt::format("{}/{}", (int)floorf(diamonds * m_level->m_normalPercent / 100.0f), diamonds).c_str());
+            diamondLabel->setString(fmt::format("{}/{}", (int)floorf(diamonds * normalPercent / 100.0f), diamonds).c_str());
             diamondIcon->setPosition({
                 position.x + diamondLabel->getScaledContentWidth() * 0.5f + 2.0f,
                 position.y - (isDemon ? 9.0f : 0.0f) - 44.5f
             });
             diamondLabel->setPosition({ diamondIcon->getPositionX() - 8.0f, diamondIcon->getPositionY() });
         }
+
         auto yPos = winSize.height / 2 + 51.0f + (showStars ? 10.0f : 0.0f);
         auto yOffset = showStars ? 28.0f : 30.0f;
         auto downloadsIcon = static_cast<CCSprite*>(m_icons->objectAtIndex(1));
@@ -231,15 +254,48 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             m_orbsLabel->setPositionY(m_orbsIcon->getPositionY());
             auto orbs = FakeRate::getBaseCurrency(stars);
             int totalOrbs = floorf(orbs * 1.25f);
-            m_orbsLabel->setString(fmt::format("{}/{}",
-                (int)floorf(m_level->m_normalPercent != 100 ? orbs * m_level->m_normalPercent / 100.0f : totalOrbs), totalOrbs).c_str());
+            m_orbsLabel->setString(fmt::format("{}/{}", (int)floorf(normalPercent != 100 ? orbs * normalPercent / 100.0f : totalOrbs), totalOrbs).c_str());
             m_orbsLabel->limitLabelWidth(60.0f, 0.5f, 0.0f);
         }
         if (m_exactLengthLabel->isVisible()) m_exactLengthLabel->setPositionY(m_lengthLabel->getPositionY() - 14.0f);
 
         m_difficultySprite->setOpacity(hide ? 0 : 255);
 
-        if (Loader::get()->isModLoaded("uproxide.more_difficulties")) fixMoreDifficultiesIncompatibility(mdo, remove, hide, gdo, dbo, gio);
+        if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties")) {
+            auto moreDifficultiesSprite = static_cast<CCSprite*>(getChildByID("uproxide.more_difficulties/more-difficulties-spr"));
+            if (moreDifficultiesSprite) moreDifficultiesSprite->setVisible(false);
+            m_difficultySprite->setOpacity(hide ? 0 : 255);
+
+            auto moreDifficultiesOverride = mdo;
+            auto starsRequested = level->m_starsRequested;
+            auto stars = level->m_stars.value();
+            if (remove && stars == 0 && (starsRequested == 4 || starsRequested == 7 || starsRequested == 9)) moreDifficultiesOverride = starsRequested;
+            if (remove && (stars == 4 || stars == 7 || stars == 9)) moreDifficultiesOverride = stars;
+            if (moreDifficultiesOverride == 4 && !moreDifficulties->getSavedValue("casual", true)) moreDifficultiesOverride = 0;
+            if (moreDifficultiesOverride == 7 && !moreDifficulties->getSavedValue("tough", true)) moreDifficultiesOverride = 0;
+            if (moreDifficultiesOverride == 9 && !moreDifficulties->getSavedValue("cruel", true)) moreDifficultiesOverride = 0;
+
+            if ((moreDifficultiesOverride == 4 || moreDifficultiesOverride == 7 || moreDifficultiesOverride == 9) && gdo <= 0 && dbo <= 0 && gio <= 0) {
+                auto legacy = moreDifficulties->getSettingValue<bool>("legacy-difficulties");
+                if (!moreDifficultiesSprite) {
+                    moreDifficultiesSprite = CCSprite::createWithSpriteFrameName(fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}{}.png",
+                        moreDifficultiesOverride, legacy ? "_Legacy" : "").c_str());
+                    moreDifficultiesSprite->setID("uproxide.more_difficulties/more-difficulties-spr");
+                    addChild(moreDifficultiesSprite, 3);
+                }
+                else {
+                    moreDifficultiesSprite->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
+                        fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}{}.png", moreDifficultiesOverride, legacy ? "_Legacy" : "").c_str()));
+                    moreDifficultiesSprite->setVisible(true);
+                }
+
+                moreDifficultiesSprite->setPosition({
+                    m_difficultySprite->getPositionX() + (legacy ? 0.0f : 0.25f),
+                    m_difficultySprite->getPositionY() - (legacy ? 0.0f : 0.1f)
+                });
+                m_difficultySprite->setOpacity(0);
+            }
+        }
 
         auto grandpaDemon = Loader::get()->getLoadedMod("itzkiba.grandpa_demon");
         auto showBackground = (hasEffects && remove) || (gdo > 2 && (grandpaDemon ? !grandpaDemon->getSettingValue<bool>("infinite-demon-disable") : false));
@@ -365,37 +421,25 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         }
         else if (auto gddpSprite = getChildByID("gddp-difficulty"_spr)) gddpSprite->removeFromParent();
     }
-
-    void fixMoreDifficultiesIncompatibility(int mdo, bool remove, bool hide, int gdo, int dbo, int gio) {
-        auto moreDifficultiesSprite = static_cast<CCSprite*>(getChildByID("uproxide.more_difficulties/more-difficulties-spr"));
-        if (moreDifficultiesSprite) moreDifficultiesSprite->setVisible(false);
-        m_difficultySprite->setOpacity(hide ? 0 : 255);
-
-        auto moreDifficultiesOverride = mdo;
-        auto starsRequested = m_level->m_starsRequested;
-        auto stars = m_level->m_stars.value();
-        if (remove && stars == 0 && (starsRequested == 4 || starsRequested == 7 || starsRequested == 9)) moreDifficultiesOverride = starsRequested;
-        if (remove && (stars == 4 || stars == 7 || stars == 9)) moreDifficultiesOverride = stars;
-        if ((moreDifficultiesOverride != 4 && moreDifficultiesOverride != 7 && moreDifficultiesOverride != 9)
-            || gdo > 0 || dbo > 0 || gio > 0) return;
-
-        auto legacy = Loader::get()->getLoadedMod("uproxide.more_difficulties")->getSettingValue<bool>("legacy-difficulties");
-        if (!moreDifficultiesSprite) {
-            moreDifficultiesSprite = CCSprite::createWithSpriteFrameName(fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}{}.png",
-                moreDifficultiesOverride, legacy ? "_Legacy" : "").c_str());
-            moreDifficultiesSprite->setID("uproxide.more_difficulties/more-difficulties-spr");
-            addChild(moreDifficultiesSprite, 3);
-        }
-        else {
-            moreDifficultiesSprite->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
-                fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}{}.png", moreDifficultiesOverride, legacy ? "_Legacy" : "").c_str()));
-            moreDifficultiesSprite->setVisible(true);
-        }
-
-        moreDifficultiesSprite->setPosition({
-            m_difficultySprite->getPositionX() + (legacy ? 0.0f : 0.25f),
-            m_difficultySprite->getPositionY() - (legacy ? 0.0f : 0.1f)
-        });
-        m_difficultySprite->setOpacity(0);
-    }
 };
+
+#ifdef GEODE_IS_MACOS // Stupid likedItem inline expansion hook
+static_assert(GEODE_COMP_GD_VERSION == 22074, "Please update this hook for the current GD version");
+
+#define LevelInfoLayer_likedItem_432 base::get() + GEODE_ARM_MAC(0x256f58) GEODE_INTEL_MAC(0x2b1040)
+void LevelInfoLayer_likedItem(void* self, LikeItemType type, int id, bool liked) {
+    reinterpret_cast<FRLevelInfoLayer*>((reinterpret_cast<uintptr_t>(self) - 0x1b0))->checkFakeRate();
+    reinterpret_cast<void(*)(void*, LikeItemType, int, bool)>(LevelInfoLayer_likedItem_432)(self, type, id, liked);
+}
+
+$execute {
+    auto hookRes = Mod::get()->hook(
+        reinterpret_cast<void*>(LevelInfoLayer_likedItem_432),
+        &LevelInfoLayer_likedItem,
+        "LevelInfoLayer::likedItem (+0x1b0)",
+        tulip::hook::TulipConvention::Thiscall
+    );
+    if (hookRes.isErr()) log::error("Failed to hook LevelInfoLayer::likedItem (+0x1b0): {}", hookRes.unwrapErr());
+    else hookRes.unwrap()->setPriority(-100);
+};
+#endif

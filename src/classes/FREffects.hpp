@@ -1,3 +1,5 @@
+#include <cocos2d.h>
+
 class FREffects {
 public:
     static cocos2d::CCSprite* grdInfinity();

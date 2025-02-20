@@ -1,4 +1,8 @@
 # Fake Rate Changelog
+## v1.4.11 (2025-02-20)
+- Added node IDs to the fake rate popup and its many sub-elements
+- Fixed a few minor bugs
+
 ## v1.4.10 (2024-11-15)
 - Ported to Geode v4.0.0-beta.1
 

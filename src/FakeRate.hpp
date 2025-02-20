@@ -1,3 +1,8 @@
+#pragma once
+#include <cocos2d.h>
+#include <Geode/Enums.hpp>
+#include <Geode/GeneratedPredeclare.hpp>
+
 struct FakeRateSaveData {
     int id;
     int stars;
@@ -43,42 +48,6 @@ public:
 
 template<>
 struct matjson::Serialize<std::vector<FakeRateSaveData>> {
-    static geode::Result<std::vector<FakeRateSaveData>> fromJson(matjson::Value const& value) {
-        if (!value.isArray()) return geode::Err("Expected array");
-
-        std::vector<FakeRateSaveData> vec;
-        for (auto const& item : value.asArray().unwrap()) {
-            vec.push_back({
-                .id = (int)item["id"].asInt().unwrapOr(0),
-                .stars = (int)item["stars"].asInt().unwrapOr(0),
-                .feature = (int)item["feature"].asInt().unwrapOr(0),
-                .difficulty = (int)item["difficulty"].asInt().unwrapOr(0),
-                .moreDifficultiesOverride = (int)item["more-difficulties-override"].asInt().unwrapOr(0),
-                .grandpaDemonOverride = (int)item["grandpa-demon-override"].asInt().unwrapOr(0),
-                .demonsInBetweenOverride = (int)item["demons-in-between-override"].asInt().unwrapOr(0),
-                .gddpIntegrationOverride = (int)item["gddp-integration-override"].asInt().unwrapOr(0),
-                .coins = item["coins"].asBool().unwrapOr(true)
-            });
-        }
-
-        return geode::Ok(vec);
-    }
-
-    static matjson::Value toJson(std::vector<FakeRateSaveData> const& vec) {
-        std::vector<matjson::Value> arr;
-        for (auto const& item : vec) {
-            arr.push_back(matjson::makeObject({
-                { "id", item.id },
-                { "stars", item.stars },
-                { "feature", item.feature },
-                { "difficulty", item.difficulty },
-                { "more-difficulties-override", item.moreDifficultiesOverride },
-                { "grandpa-demon-override", item.grandpaDemonOverride },
-                { "demons-in-between-override", item.demonsInBetweenOverride },
-                { "gddp-integration-override", item.gddpIntegrationOverride },
-                { "coins", item.coins }
-            }));
-        }
-        return arr;
-    }
+    static geode::Result<std::vector<FakeRateSaveData>> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const std::vector<FakeRateSaveData>& vec);
 };

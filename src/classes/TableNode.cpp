@@ -1,4 +1,5 @@
 #include "TableNode.hpp"
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 
@@ -43,6 +44,14 @@ void TableNode::setRowHeight(float rowHeight) {
     }
 }
 
+void TableNode::setRowPrefix(const std::string& rowPrefix) {
+    m_rowPrefix = rowPrefix;
+    for (int i = 0; i < m_menus->count(); i++) {
+        auto menu = static_cast<CCMenu*>(m_menus->objectAtIndex(i));
+        menu->setID(fmt::format("{}-{}", rowPrefix, i + 1));
+    }
+}
+
 void TableNode::updateAllLayouts() {
     for (auto menu : CCArrayExt<CCMenu*>(m_menus)) {
         menu->updateLayout();
@@ -50,12 +59,13 @@ void TableNode::updateAllLayouts() {
     updateLayout();
 }
 
-void TableNode::addButton(CCMenuItemSpriteExtra* button) {
+void TableNode::addButton(CCMenuItem* button) {
     CCMenu* menu = nullptr;
     if (m_menus->count() <= 0 || static_cast<CCMenu*>(m_menus->objectAtIndex(m_menus->count() - 1))->getChildrenCount() >= m_columns) {
         menu = CCMenu::create();
         menu->setContentSize({ m_obContentSize.width, m_rowHeight });
         menu->setLayout(m_rowLayout);
+        menu->setID(fmt::format("{}-{}", m_rowPrefix, m_menus->count() + 1));
         addChild(menu);
         m_menus->addObject(menu);
     } else menu = static_cast<CCMenu*>(m_menus->objectAtIndex(m_menus->count() - 1));
