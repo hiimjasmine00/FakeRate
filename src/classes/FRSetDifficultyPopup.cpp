@@ -10,7 +10,7 @@ using namespace geode::prelude;
 
 FRSetDifficultyPopup* FRSetDifficultyPopup::create(const FakeRateSaveData& data, bool legacy, SetDifficultyCallback callback) {
     auto ret = new FRSetDifficultyPopup();
-    if (ret->initAnchored(300.0f, 250.0f, data, legacy, callback)) {
+    if (ret->initAnchored(300.0f, 250.0f, data, legacy, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -84,10 +84,11 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this, callback](auto) {
-        callback(m_difficulty, m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this, callback = std::move(callback)](auto) {
+            callback(m_difficulty, m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride);
+            onClose(nullptr);
+        });
     confirmButton->setPosition({ 150.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

@@ -5,7 +5,6 @@
 #include <Geode/binding/GJDifficultySprite.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/modify/LevelCell.hpp>
-#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
@@ -23,11 +22,11 @@ class $modify(FRLevelCell, LevelCell) {
 
         auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
         auto levelID = level->m_levelID.value();
-        auto i = ranges::indexOf(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
-        if (!i.has_value()) return;
+        auto it = std::ranges::find_if(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
+        if (it == vec.end()) return;
 
         auto difficultySprite = static_cast<GJDifficultySprite*>(difficultyContainer->getChildByID("difficulty-sprite"));
-        if (auto betweenDifficultySprite = static_cast<CCSprite*>(difficultyContainer->getChildByID("hiimjustin000.demons_in_between/between-difficulty-sprite"))) {
+        if (auto betweenDifficultySprite = difficultyContainer->getChildByID("hiimjustin000.demons_in_between/between-difficulty-sprite")) {
             betweenDifficultySprite->setVisible(false);
             difficultySprite->setOpacity(255);
         }
@@ -45,16 +44,16 @@ class $modify(FRLevelCell, LevelCell) {
             difficultyContainer->removeChildByTag(69420);
             if (Loader::get()->isModLoaded("uproxide.animated_fire")) difficultyContainer->removeChildByTag(69420);
             difficultySprite->setVisible(true);
-            if (auto grdInfinity = static_cast<CCSprite*>(difficultyContainer->getChildByID("grd-infinity"))) {
+            if (auto grdInfinity = difficultyContainer->getChildByID("grd-infinity")) {
                 grdInfinity->setVisible(false);
-                static_cast<CCSprite*>(difficultyContainer->getChildren()->objectAtIndex(difficultyContainer->getChildrenCount() - 2))->setVisible(false);
+                static_cast<CCNode*>(difficultyContainer->getChildren()->objectAtIndex(difficultyContainer->getChildrenCount() - 2))->setVisible(false);
             }
-            else static_cast<CCSprite*>(difficultyContainer->getChildren()->lastObject())->setVisible(false);
+            else static_cast<CCNode*>(difficultyContainer->getChildren()->lastObject())->setVisible(false);
             if (auto featureGlow = difficultySprite->getChildByTag(69420))
                 featureGlow->setPosition(difficultySprite->getContentSize() / 2);
         }
 
-        auto& fakeRateData = vec[i.value()];
+        auto& fakeRateData = *it;
         difficultySprite->updateFeatureState((GJFeatureState)fakeRateData.feature);
         difficultySprite->updateDifficultyFrame(fakeRateData.difficulty, GJDifficultyName::Short);
         auto addCoins = level->m_coins > 0 && !m_compactView;
@@ -63,7 +62,7 @@ class $modify(FRLevelCell, LevelCell) {
         difficultySprite->setPositionY((showStars || addCoins ? 5.0f : 0.0f) + (showStars && addCoins ? 9.0f : 0.0f) + (dailyID > 0 ? 10.0f : 0.0f));
         auto gsm = GameStatsManager::get();
         if (showStars) {
-            auto starsIcon = static_cast<CCSprite*>(difficultyContainer->getChildByID("stars-icon"));
+            auto starsIcon = difficultyContainer->getChildByID("stars-icon");
             if (!starsIcon) {
                 starsIcon = CCSprite::createWithSpriteFrameName(level->m_levelLength < 5 ? "star_small01_001.png" : "moon_small01_001.png");
                 starsIcon->setPosition({ difficultySprite->getPositionX() + 8.0f, difficultySprite->getPositionY() - 30.0f });
@@ -83,8 +82,8 @@ class $modify(FRLevelCell, LevelCell) {
             if (gsm->hasCompletedLevel(level)) starsLabel->setColor({ 255, 255, 50 });
         }
         else {
-            if (auto starsIcon = static_cast<CCSprite*>(difficultyContainer->getChildByID("stars-icon"))) starsIcon->removeFromParent();
-            if (auto starsLabel = static_cast<CCLabelBMFont*>(difficultyContainer->getChildByID("stars-label"))) starsLabel->removeFromParent();
+            if (auto starsIcon = difficultyContainer->getChildByID("stars-icon")) starsIcon->removeFromParent();
+            if (auto starsLabel = difficultyContainer->getChildByID("stars-label")) starsLabel->removeFromParent();
         }
 
         auto coinParent = m_compactView ? m_mainLayer : difficultyContainer;
@@ -103,7 +102,7 @@ class $modify(FRLevelCell, LevelCell) {
 
         if (dailyID > 0) {
             auto diamondLabel = static_cast<CCLabelBMFont*>(difficultyContainer->getChildByID("diamond-label"));
-            auto diamondIcon = static_cast<CCSprite*>(difficultyContainer->getChildByID("diamond-icon"));
+            auto diamondIcon = difficultyContainer->getChildByID("diamond-icon");
             auto diamonds = fakeRateData.stars > 1 ? fakeRateData.stars + 2 : 0;
             diamondLabel->setString(fmt::format("{}/{}", (int)floorf(diamonds * level->m_normalPercent.value() / 100.0f), diamonds).c_str());
             diamondIcon->setPositionX(difficultySprite->getPositionX() + diamondLabel->getScaledContentWidth() * 0.5f + 2.0f);
@@ -111,17 +110,17 @@ class $modify(FRLevelCell, LevelCell) {
         }
 
         auto padding = (showStars ? 18.0f : 25.0f) * (m_compactView ? 0.8f : 1.0f);
-        auto lengthLabel = static_cast<CCLabelBMFont*>(m_mainLayer->getChildByID("length-label"));
-        auto downloadsIcon = static_cast<CCSprite*>(m_mainLayer->getChildByID("downloads-icon"));
-        auto downloadsLabel = static_cast<CCLabelBMFont*>(m_mainLayer->getChildByID("downloads-label"));
+        auto lengthLabel = m_mainLayer->getChildByID("length-label");
+        auto downloadsIcon = m_mainLayer->getChildByID("downloads-icon");
+        auto downloadsLabel = m_mainLayer->getChildByID("downloads-label");
         downloadsIcon->setPositionX(lengthLabel->getPositionX() + lengthLabel->getScaledContentWidth() + padding);
         downloadsLabel->setPositionX(downloadsIcon->getPositionX() + 9.0f);
-        auto likesLabel = static_cast<CCLabelBMFont*>(m_mainLayer->getChildByID("likes-label"));
-        auto likesIcon = static_cast<CCSprite*>(m_mainLayer->getChildByID("likes-icon"));
+        auto likesLabel = m_mainLayer->getChildByID("likes-label");
+        auto likesIcon = m_mainLayer->getChildByID("likes-icon");
         likesIcon->setPositionX(downloadsLabel->getPositionX() + downloadsLabel->getScaledContentWidth() + padding);
         likesLabel->setPositionX(likesIcon->getPositionX() + 10.0f);
         if (showStars) {
-            auto orbsIcon = static_cast<CCSprite*>(m_mainLayer->getChildByID("orbs-icon"));
+            auto orbsIcon = m_mainLayer->getChildByID("orbs-icon");
             if (!orbsIcon) {
                 orbsIcon = CCSprite::createWithSpriteFrameName("currencyOrbIcon_001.png");
                 orbsIcon->setScale(m_compactView ? 0.4f : 0.6f);
@@ -143,13 +142,14 @@ class $modify(FRLevelCell, LevelCell) {
             auto percent = level->m_normalPercent.value();
             auto savedLevel = GameLevelManager::get()->getSavedLevel(level);
             if (savedLevel) percent = savedLevel->m_normalPercent.value();
-            orbsLabel->setString((percent == 100 ? fmt::format("{}", totalOrbs) : fmt::format("{}/{}", (int)floorf(orbs * percent / 100.0f), totalOrbs)).c_str());
+            orbsLabel->setString(
+                (percent == 100 ? fmt::format("{}", totalOrbs) : fmt::format("{}/{}", (int)floorf(orbs * percent / 100.0f), totalOrbs)).c_str());
             orbsLabel->limitLabelWidth(45.0f, m_compactView ? 0.3f : 0.4f, 0.0f);
             if (percent == 100) orbsLabel->setColor({ 100, 255, 255 });
         }
         else {
-            if (auto orbsIcon = static_cast<CCSprite*>(m_mainLayer->getChildByID("orbs-icon"))) orbsIcon->removeFromParent();
-            if (auto orbsLabel = static_cast<CCLabelBMFont*>(m_mainLayer->getChildByID("orbs-label"))) orbsLabel->removeFromParent();
+            if (auto orbsIcon = m_mainLayer->getChildByID("orbs-icon")) orbsIcon->removeFromParent();
+            if (auto orbsLabel = m_mainLayer->getChildByID("orbs-label")) orbsLabel->removeFromParent();
         }
 
         auto& position = difficultySprite->getPosition();
@@ -209,7 +209,8 @@ class $modify(FRLevelCell, LevelCell) {
                 auto dibFeature = "";
                 if (fakeRateData.feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
                 else if (fakeRateData.feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
-                auto dibSprite = CCSprite::createWithSpriteFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn_001.png", dbo, dibFeature).c_str());
+                auto dibSprite = CCSprite::createWithSpriteFrameName(
+                    fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn_001.png", dbo, dibFeature).c_str());
                 dibSprite->setID("between-difficulty-sprite"_spr);
                 dibSprite->setPosition(position + FakeRate::getDIBOffset(dbo, GJDifficultyName::Short));
                 difficultyContainer->addChild(dibSprite, 3);

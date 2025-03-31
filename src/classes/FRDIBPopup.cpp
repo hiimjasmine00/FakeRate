@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 FRDIBPopup* FRDIBPopup::create(int demonsInBetweenOverride, SetDIBCallback callback) {
     auto ret = new FRDIBPopup();
-    if (ret->initAnchored(350.0f, 310.0f, demonsInBetweenOverride, callback)) {
+    if (ret->initAnchored(350.0f, 310.0f, demonsInBetweenOverride, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -37,8 +37,8 @@ bool FRDIBPopup::setup(int demonsInBetweenOverride, SetDIBCallback callback) {
     m_mainLayer->addChild(table);
 
     for (int i = 1; i < 21; i++) {
-        auto toggle = CCMenuItemExt::createSpriteExtraWithFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02}_btn2_001.png", i).c_str(), 1.0f,
-            [this, i](CCMenuItemSpriteExtra* sender) {
+        auto toggle = CCMenuItemExt::createSpriteExtraWithFrameName(
+            fmt::format("hiimjustin000.demons_in_between/DIB_{:02}_btn2_001.png", i).c_str(), 1.0f, [this, i](CCMenuItemSpriteExtra* sender) {
                 m_demonsInBetweenOverride = sender != m_selected ? i : 0;
                 if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
                 if (sender != m_selected) FakeRate::toggle(sender->getNormalImage(), true);
@@ -52,10 +52,11 @@ bool FRDIBPopup::setup(int demonsInBetweenOverride, SetDIBCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this, callback](auto) {
-        callback(m_demonsInBetweenOverride);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this, callback = std::move(callback)](auto) {
+            callback(m_demonsInBetweenOverride);
+            onClose(nullptr);
+        });
     confirmButton->setPosition({ 175.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

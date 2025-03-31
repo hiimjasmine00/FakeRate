@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 FRGDDPPopup* FRGDDPPopup::create(int gddpIntegrationOverride, SetGDDPCallback callback) {
     auto ret = new FRGDDPPopup();
-    if (ret->initAnchored(350.0f, 250.0f, gddpIntegrationOverride, callback)) {
+    if (ret->initAnchored(350.0f, 250.0f, gddpIntegrationOverride, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -52,10 +52,11 @@ bool FRGDDPPopup::setup(int gddpIntegrationOverride, SetGDDPCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this, callback](auto) {
-        callback(m_gddpIntegrationOverride);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this, callback = std::move(callback)](auto) {
+            callback(m_gddpIntegrationOverride);
+            onClose(nullptr);
+        });
     confirmButton->setPosition({ 175.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

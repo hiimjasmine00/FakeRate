@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.12 (2025-04-01)
+- Internal code changes (April Fools' Day)
+
 ## v1.4.11 (2025-02-20)
 - Added node IDs to the fake rate popup and its many sub-elements
 - Fixed a few minor bugs

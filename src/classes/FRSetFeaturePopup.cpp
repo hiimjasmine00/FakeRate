@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 FRSetFeaturePopup* FRSetFeaturePopup::create(const FakeRateSaveData& data, bool legacy, SetFeatureCallback callback) {
     auto ret = new FRSetFeaturePopup();
-    if (ret->initAnchored(300.0f, 150.0f, data, legacy, callback)) {
+    if (ret->initAnchored(300.0f, 150.0f, data, legacy, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -54,7 +54,8 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
             difficultySprite->addChild(mdSprite);
         }
         if (Loader::get()->isModLoaded("itzkiba.grandpa_demon") && m_grandpaDemonOverride > 0) {
-            auto grdSprite = CCSprite::createWithSpriteFrameName(fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", m_grandpaDemonOverride - 1).c_str());
+            auto grdSprite = CCSprite::createWithSpriteFrameName(
+                fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", m_grandpaDemonOverride - 1).c_str());
             grdSprite->setPosition(difficultySprite->getContentSize() / 2);
             difficultySprite->setOpacity(0);
             difficultySprite->addChild(grdSprite);
@@ -97,10 +98,11 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
 
     menuRow->updateLayout();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this, callback](auto) {
-        callback((int)m_feature);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this, callback = std::move(callback)](auto) {
+            callback((int)m_feature);
+            onClose(nullptr);
+        });
     confirmButton->setPosition({ 150.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

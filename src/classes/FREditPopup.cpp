@@ -13,7 +13,7 @@ using namespace geode::prelude;
 
 FREditPopup* FREditPopup::create(GJGameLevel* level, const FakeRateSaveData& data, UpdateFakeRateCallback callback) {
     auto ret = new FREditPopup();
-    if (ret->initAnchored(300.0f, 200.0f, level, data, callback)) {
+    if (ret->initAnchored(300.0f, 200.0f, level, data, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -98,8 +98,12 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
 
     for (int i = 0; i < m_level->m_coins; i++) {
         auto coin = CCSprite::createWithSpriteFrameName("usercoin_small01_001.png");
-        coin->setPositionX(60.0f +
-            (i == 2 ? 10.0f : i == 1 && m_level->m_coins == 2 ? 5.0f : i == 0 && m_level->m_coins == 2 ? -5.0f : i == 0 && m_level->m_coins == 3 ? -10.0f : 0.0f));
+        coin->setPositionX(60.0f + (
+            i == 2 ? 10.0f :
+            i == 1 && m_level->m_coins == 2 ? 5.0f :
+            i == 0 && m_level->m_coins == 2 ? -5.0f :
+            i == 0 && m_level->m_coins == 3 ? -10.0f : 0.0f
+        ));
         coin->setID(fmt::format("coin-sprite-{}", i + 1));
         m_mainLayer->addChild(coin);
         m_coinSprites->addObject(coin);
@@ -168,59 +172,62 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
     coinsLabel->setID("coins-label");
     m_mainLayer->addChild(coinsLabel);
 
-    auto addButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Add", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this, callback](auto) {
-        auto levelID = m_level->m_levelID.value();
-        FakeRateSaveData data = {
-            .id = levelID,
-            .stars = m_stars,
-            .feature = m_feature,
-            .difficulty = m_difficulty,
-            .moreDifficultiesOverride = m_moreDifficultiesOverride,
-            .grandpaDemonOverride = m_grandpaDemonOverride,
-            .demonsInBetweenOverride = m_demonsInBetweenOverride,
-            .gddpIntegrationOverride = m_gddpIntegrationOverride,
-            .coins = m_coins
-        };
+    auto addButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Add", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this, callback = std::move(callback)](auto) {
+            auto levelID = m_level->m_levelID.value();
+            FakeRateSaveData data = {
+                .id = levelID,
+                .stars = m_stars,
+                .feature = m_feature,
+                .difficulty = m_difficulty,
+                .moreDifficultiesOverride = m_moreDifficultiesOverride,
+                .grandpaDemonOverride = m_grandpaDemonOverride,
+                .demonsInBetweenOverride = m_demonsInBetweenOverride,
+                .gddpIntegrationOverride = m_gddpIntegrationOverride,
+                .coins = m_coins
+            };
 
-        auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
-        auto i = ranges::indexOf(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
-        if (i.has_value()) vec[i.value()] = data;
-        else vec.push_back(data);
-        Mod::get()->setSavedValue("fake-rate", vec);
+            auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
+            auto it = std::ranges::find_if(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
+            if (it != vec.end()) *it = data;
+            else vec.push_back(data);
+            Mod::get()->setSavedValue("fake-rate", vec);
 
-        callback(data, false);
-        onClose(nullptr);
-    });
+            callback(data, false);
+            onClose(nullptr);
+        });
     addButton->setPosition({ 150.0f, 30.0f });
     addButton->setID("add-button");
     m_buttonMenu->addChild(addButton);
 
-    auto removeButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Remove", "goldFont.fnt", "GJ_button_06.png", 0.8f), [this, callback](auto) {
-        auto levelID = m_level->m_levelID.value();
+    auto removeButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Remove", "goldFont.fnt", "GJ_button_06.png", 0.8f),
+        [this, callback = std::move(callback)](auto) {
+            auto levelID = m_level->m_levelID.value();
 
-        auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
-        if (vec.empty()) return;
+            auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
+            if (vec.empty()) return;
 
-        auto vecSize = vec.size();
-        ranges::remove(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
-        if (vec.size() == vecSize) return;
+            auto vecSize = vec.size();
+            ranges::remove(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
+            if (vec.size() == vecSize) return;
 
-        Mod::get()->setSavedValue("fake-rate", vec);
+            Mod::get()->setSavedValue("fake-rate", vec);
 
-        auto stars = m_level->m_stars.value();
-        callback({
-            .id = m_level->m_levelID,
-            .stars = stars,
-            .feature = m_level->m_featured > 1 ? m_level->m_isEpic + 1 : 0,
-            .difficulty = FakeRate::getDifficultyFromLevel(m_level),
-            .moreDifficultiesOverride = Loader::get()->isModLoaded("uproxide.more_difficulties") && (stars == 4 || stars == 7 || stars == 9) ? stars : 0,
-            .grandpaDemonOverride = 0,
-            .demonsInBetweenOverride = 0,
-            .gddpIntegrationOverride = 0,
-            .coins = m_level->m_coinsVerified > 0
-        }, true);
-        onClose(nullptr);
-    });
+            auto stars = m_level->m_stars.value();
+            callback({
+                .id = m_level->m_levelID,
+                .stars = stars,
+                .feature = m_level->m_featured > 1 ? m_level->m_isEpic + 1 : 0,
+                .difficulty = FakeRate::getDifficultyFromLevel(m_level),
+                .moreDifficultiesOverride =
+                    Loader::get()->isModLoaded("uproxide.more_difficulties") && (stars == 4 || stars == 7 || stars == 9) ? stars : 0,
+                .grandpaDemonOverride = 0,
+                .demonsInBetweenOverride = 0,
+                .gddpIntegrationOverride = 0,
+                .coins = m_level->m_coinsVerified > 0
+            }, true);
+            onClose(nullptr);
+        });
     removeButton->setPosition({ 235.0f, 30.0f });
     removeButton->setID("remove-button");
     m_buttonMenu->addChild(removeButton);

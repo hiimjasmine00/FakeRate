@@ -5,7 +5,7 @@ using namespace geode::prelude;
 
 FRSetStarsPopup* FRSetStarsPopup::create(int stars, bool platformer, SetStarsCallback callback) {
     auto ret = new FRSetStarsPopup();
-    if (ret->initAnchored(250.0f, 150.0f, stars, platformer, callback)) {
+    if (ret->initAnchored(250.0f, 150.0f, stars, platformer, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -82,10 +82,11 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
     rightButton->setID("right-button");
     m_buttonMenu->addChild(rightButton);
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this, callback](auto) {
-        callback(m_stars);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this, callback = std::move(callback)](auto) {
+            callback(m_stars);
+            onClose(nullptr);
+        });
     confirmButton->setPosition({ 125.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

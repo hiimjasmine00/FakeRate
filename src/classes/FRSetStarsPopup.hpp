@@ -1,7 +1,7 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
 
-typedef const std::function<void(int)>& SetStarsCallback;
+typedef std::function<void(int)> SetStarsCallback;
 
 class FRSetStarsPopup : public geode::Popup<int, bool, SetStarsCallback> {
 protected:

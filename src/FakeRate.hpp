@@ -2,6 +2,7 @@
 #include <cocos2d.h>
 #include <Geode/Enums.hpp>
 #include <Geode/GeneratedPredeclare.hpp>
+#include <matjson.hpp>
 
 struct FakeRateSaveData {
     int id;

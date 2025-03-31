@@ -1,6 +1,6 @@
 #include <Geode/ui/Popup.hpp>
 
-typedef const std::function<void(int)>& SetGRDCallback;
+typedef std::function<void(int)> SetGRDCallback;
 
 class FRGRDPopup : public geode::Popup<int, SetGRDCallback> {
 protected:

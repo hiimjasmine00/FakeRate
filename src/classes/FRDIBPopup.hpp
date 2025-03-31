@@ -1,6 +1,6 @@
 #include <Geode/ui/Popup.hpp>
 
-typedef const std::function<void(int)>& SetDIBCallback;
+typedef std::function<void(int)> SetDIBCallback;
 
 class FRDIBPopup : public geode::Popup<int, SetDIBCallback> {
 protected:

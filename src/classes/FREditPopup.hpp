@@ -1,7 +1,7 @@
 #include "../FakeRate.hpp"
 #include <Geode/ui/Popup.hpp>
 
-typedef const std::function<void(FakeRateSaveData, bool)>& UpdateFakeRateCallback;
+typedef std::function<void(const FakeRateSaveData&, bool)> UpdateFakeRateCallback;
 
 class FREditPopup : public geode::Popup<GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback> {
 protected:
