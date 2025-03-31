@@ -92,14 +92,13 @@ int FakeRate::getDIBOverride(CCSprite* sprite) {
 
 int FakeRate::getGDDPOverride(CCSprite* sprite) {
     auto sprName = getSpriteName(sprite);
-    if (sprName.substr(sprName.size() - 8) == "Text.png") sprName = sprName.substr(0, sprName.size() - 8);
-    if (sprName.substr(sprName.size() - 5) == "Small") sprName = sprName.substr(0, sprName.size() - 5);
-    if (sprName.substr(sprName.size() - 4) == "Plus") sprName = sprName.substr(0, sprName.size() - 4);
+    if (sprName.ends_with("Text.png")) sprName = sprName.substr(0, sprName.size() - 8);
+    if (sprName.ends_with("Small")) sprName = sprName.substr(0, sprName.size() - 5);
+    if (sprName.ends_with("Plus")) sprName = sprName.substr(0, sprName.size() - 4);
 
-    auto pos = sprName.find("DP_");
-    if (pos != std::string::npos) {
-        auto str = GDDP_INDICES.find(sprName.substr(pos + 3));
-        return str != GDDP_INDICES.end() ? str->second : 0;
+    if (auto pos = sprName.find("DP_"); pos != std::string::npos) {
+        auto str = sprName.substr(pos + 3);
+        return gddpIndices.contains(str) ? gddpIndices[str] : 0;
     }
     else return 0;
 }

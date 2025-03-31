@@ -54,7 +54,7 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
     m_mainLayer->addChild(table);
 
     int i = 1;
-    for (auto& [d, mdo] : DIFFICULTIES) {
+    for (auto& [d, mdo] : difficulties) {
         auto num = d == -1 ? "auto" : fmt::format("{:02d}", d);
         auto frameName = d > 5 ? fmt::format("difficulty_{}_btn2_001.png", num) : fmt::format("difficulty_{}_btn_001.png", num);
         if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties"); moreDifficulties && mdo > 0) {

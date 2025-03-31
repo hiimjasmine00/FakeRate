@@ -18,7 +18,7 @@ struct FakeRateSaveData {
 
 class FakeRate {
 private:
-    inline static std::unordered_map<std::string, int> GDDP_INDICES = {
+    inline static std::unordered_map<std::string, int> gddpIndices = {
         { "Beginner", 1 },
         { "Bronze", 2 },
         { "Silver", 3 },
