@@ -433,8 +433,8 @@ static_assert(GEODE_COMP_GD_VERSION == 22074, "Please update this hook for the c
 
 #define LevelInfoLayer_likedItem_432 base::get() + GEODE_ARM_MAC(0x256f58) GEODE_INTEL_MAC(0x2b1040)
 void LevelInfoLayer_likedItem(void* self, LikeItemType type, int id, bool liked) {
-    reinterpret_cast<FRLevelInfoLayer*>((reinterpret_cast<uintptr_t>(self) - 0x1b0))->checkFakeRate();
     reinterpret_cast<void(*)(void*, LikeItemType, int, bool)>(LevelInfoLayer_likedItem_432)(self, type, id, liked);
+    reinterpret_cast<FRLevelInfoLayer*>((reinterpret_cast<uintptr_t>(self) - 0x1b0))->checkFakeRate();
 }
 
 $execute {
