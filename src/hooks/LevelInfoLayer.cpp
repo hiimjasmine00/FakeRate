@@ -438,13 +438,15 @@ void LevelInfoLayer_likedItem(void* self, LikeItemType type, int id, bool liked)
 }
 
 $execute {
-    auto hookRes = Mod::get()->hook(
+    (void)Mod::get()->hook(
         reinterpret_cast<void*>(LevelInfoLayer_likedItem_432),
         &LevelInfoLayer_likedItem,
         "LevelInfoLayer::likedItem (+0x1b0)",
         tulip::hook::TulipConvention::Thiscall
-    );
-    if (hookRes.isErr()) log::error("Failed to hook LevelInfoLayer::likedItem (+0x1b0): {}", hookRes.unwrapErr());
-    else hookRes.unwrap()->setPriority(-100);
+    ).map([](Hook* hook) {
+        return hook->setPriority(-100), hook;
+    }).mapErr([](const std::string& err) {
+        return log::error("Failed to hook LevelInfoLayer::likedItem (+0x1b0): {}", err), err;
+    });
 };
 #endif
