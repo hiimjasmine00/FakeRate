@@ -3,9 +3,10 @@
     "gd": {
         "android": "2.2074",
         "win": "2.2074",
-        "mac": "2.2074"
+        "mac": "2.2074",
+        "ios": "2.2074"
     },
-    "version": "v1.4.12",
+    "version": "v1.4.13",
     "id": "hiimjustin000.fake_rate",
     "name": "Fake Rate",
     "developer": "hiimjasmine00",

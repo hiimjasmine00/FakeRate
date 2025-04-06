@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.13 (2025-04-06)
+- Added support for iOS
+
 ## v1.4.12 (2025-04-01)
 - Internal code changes (April Fools' Day)
 
