@@ -173,7 +173,7 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
     m_mainLayer->addChild(coinsLabel);
 
     auto addButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Add", "goldFont.fnt", "GJ_button_01.png", 0.8f),
-        [this, callback = std::move(callback)](auto) {
+        [this, callback](auto) {
             auto levelID = m_level->m_levelID.value();
             FakeRateSaveData data = {
                 .id = levelID,
@@ -201,7 +201,7 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
     m_buttonMenu->addChild(addButton);
 
     auto removeButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Remove", "goldFont.fnt", "GJ_button_06.png", 0.8f),
-        [this, callback = std::move(callback)](auto) {
+        [this, callback](auto) {
             auto levelID = m_level->m_levelID.value();
 
             auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
