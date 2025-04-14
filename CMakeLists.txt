@@ -9,7 +9,7 @@ endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 
-project(FakeRate VERSION 1.4.13)
+project(FakeRate VERSION 1.4.14)
 
 add_library(${PROJECT_NAME} SHARED
     src/classes/FRDIBPopup.cpp

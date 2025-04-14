@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.14 (2025-04-14)
+- Refined iOS support
+
 ## v1.4.13 (2025-04-06)
 - Fixed a bug where the game would crash when removing a fake rate on Windows
 - Added support for iOS
