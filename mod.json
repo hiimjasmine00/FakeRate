@@ -1,16 +1,16 @@
 {
-    "geode": "4.3.1",
+    "geode": "4.6.1",
     "gd": {
         "android": "2.2074",
         "win": "2.2074",
         "mac": "2.2074",
         "ios": "2.2074"
     },
-    "version": "v1.4.14",
+    "version": "v1.4.15",
     "id": "hiimjustin000.fake_rate",
     "name": "Fake Rate",
     "developer": "hiimjasmine00",
-    "description": "A mod that allows you to assign a fake rating to online levels.",
+    "description": "Expansive level rating customization.",
     "dependencies": {
         "geode.node-ids": ">=v1.12.0"
     },

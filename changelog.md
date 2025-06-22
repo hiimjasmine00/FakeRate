@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.15 (2025-06-22)
+- Ported to Geode v4.6.1
+
 ## v1.4.14 (2025-04-14)
 - Refined iOS support
 
