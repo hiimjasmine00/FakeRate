@@ -26,3 +26,6 @@ Expansive level rating customization.
 ![Stars Popup](hiimjustin000.fake_rate/stars-popup.png?width=300)
 
 ![Feature Popup](hiimjustin000.fake_rate/feature-popup.png?width=300)
+
+## License
+This mod is licensed under the [MIT License](https://github.com/hiimjasmine00/FakeRate/blob/master/LICENSE).
