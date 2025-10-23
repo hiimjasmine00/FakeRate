@@ -1,9 +1,37 @@
 #include "FakeRate.hpp"
 #include <Geode/binding/GJGameLevel.hpp>
-#include <Geode/utils/cocos.hpp>
-#include <Geode/utils/ranges.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
+
+std::vector<FakeRateSaveData> FakeRate::fakeRates;
+
+std::unordered_map<std::string, int> gddpIndices = {
+    { "Beginner", 1 },
+    { "Bronze", 2 },
+    { "Silver", 3 },
+    { "Gold", 4 },
+    { "Amber", 5 },
+    { "Platinum", 6 },
+    { "Sapphire", 7 },
+    { "Jade", 8 },
+    { "Emerald", 9 },
+    { "Ruby", 10 },
+    { "Diamond", 11 },
+    { "Pearl", 12 },
+    { "Onyx", 13 },
+    { "Amethyst", 14 },
+    { "Azurite", 15 },
+    { "Obsidian", 16 }
+};
+
+$on_mod(Loaded) {
+    FakeRate::fakeRates = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate");
+}
+
+$on_mod(DataSaved) {
+    Mod::get()->setSavedValue("fake-rate", FakeRate::fakeRates);
+}
 
 int FakeRate::getBaseCurrency(int stars) {
     switch (stars) {
@@ -29,8 +57,9 @@ int FakeRate::getDifficultyFromLevel(GJGameLevel* level) {
 
 std::string FakeRate::getSpriteName(CCSprite* sprite) {
     if (auto texture = sprite->getTexture()) {
+        auto& textureRect = sprite->getTextureRect();
         for (auto [key, frame] : CCDictionaryExt<std::string, CCSpriteFrame*>(CCSpriteFrameCache::get()->m_pSpriteFrames)) {
-            if (frame->getTexture() == texture && frame->getRect() == sprite->getTextureRect()) return key;
+            if (frame->getTexture() == texture && frame->getRect() == textureRect) return key;
         }
         for (auto [key, obj] : CCDictionaryExt<std::string, CCTexture2D*>(CCTextureCache::get()->m_pTextures)) {
             if (obj == texture) return key;
@@ -44,8 +73,10 @@ void FakeRate::toggle(CCNode* node, bool enabled) {
         auto color = enabled ? ccColor3B { 255, 255, 255 } : ccColor3B { 125, 125, 125 };
         sprite->setColor(color);
 
-        if (auto children = node->getChildren()) for (auto child : CCArrayExt<CCNode*>(children)) {
-            if (auto sprite = typeinfo_cast<CCRGBAProtocol*>(child)) sprite->setColor(color);
+        if (auto children = node->getChildren()) {
+            for (auto child : CCArrayExt<CCNode*>(children)) {
+                if (auto sprite = typeinfo_cast<CCRGBAProtocol*>(child)) sprite->setColor(color);
+            }
         }
     }
 }
@@ -80,14 +111,22 @@ int FakeRate::getGRDOverride(CCSprite* sprite) {
     auto sprName = getSpriteName(sprite);
 
     auto pos = sprName.find("GrD_demon");
-    return pos != std::string::npos ? numFromString<int>(sprName.substr(pos + 9)).unwrapOr(0) : 0;
+    if (pos == std::string::npos || pos + 9 >= sprName.size()) return 0;
+
+    auto ret = 0;
+    std::from_chars(sprName.data() + (pos + 9), sprName.data() + sprName.size(), ret);
+    return ret;
 }
 
 int FakeRate::getDIBOverride(CCSprite* sprite) {
     auto sprName = getSpriteName(sprite);
 
     auto pos = sprName.find("DIB_");
-    return pos != std::string::npos ? numFromString<int>(sprName.substr(pos + 4)).unwrapOr(0) : 0;
+    if (pos == std::string::npos || pos + 4 >= sprName.size()) return 0;
+
+    auto ret = 0;
+    std::from_chars(sprName.data() + (pos + 4), sprName.data() + sprName.size(), ret);
+    return ret;
 }
 
 int FakeRate::getGDDPOverride(CCSprite* sprite) {
@@ -96,67 +135,48 @@ int FakeRate::getGDDPOverride(CCSprite* sprite) {
     if (sprName.ends_with("Small")) sprName = sprName.substr(0, sprName.size() - 5);
     if (sprName.ends_with("Plus")) sprName = sprName.substr(0, sprName.size() - 4);
 
-    if (auto pos = sprName.find("DP_"); pos != std::string::npos) {
-        auto str = sprName.substr(pos + 3);
-        return gddpIndices.contains(str) ? gddpIndices[str] : 0;
-    }
-    else return 0;
+    auto pos = sprName.find("DP_");
+    if (pos == std::string::npos || pos + 3 >= sprName.size()) return 0;
+
+    auto it = gddpIndices.find(sprName.substr(pos + 3));
+    return it != gddpIndices.end() ? it->second : 0;
 }
 
 std::string FakeRate::getGDDPFrame(int difficulty, GJDifficultyName name) {
-    auto diff = "";
-    switch (difficulty) {
-        case 1: diff = "Beginner"; break;
-        case 2: diff = "Bronze"; break;
-        case 3: diff = "Silver"; break;
-        case 4: diff = "Gold"; break;
-        case 5: diff = "Amber"; break;
-        case 6: diff = "Platinum"; break;
-        case 7: diff = "Sapphire"; break;
-        case 8: diff = "Jade"; break;
-        case 9: diff = "Emerald"; break;
-        case 10: diff = "Ruby"; break;
-        case 11: diff = "Diamond"; break;
-        case 12: diff = "Onyx"; break;
-        case 13: diff = "Amethyst"; break;
-        case 14: diff = "Azurite"; break;
-        case 15: diff = "Obsidian"; break;
-        default: diff = "Beginner"; break;
-    }
+    constexpr std::array difficulties = {
+        "Beginner", "Bronze", "Silver", "Gold", "Amber", "Platinum", "Sapphire", "Jade",
+        "Emerald", "Ruby", "Diamond", "Pearl", "Onyx", "Amethyst", "Azurite", "Obsidian"
+    };
 
-    return fmt::format("minemaker0430.gddp_integration/DP_{}{}Text.png", diff, name == GJDifficultyName::Short ? "Small" : "");
+    return fmt::format("minemaker0430.gddp_integration/DP_{}{}Text.png",
+        difficulties[difficulty - 1], name == GJDifficultyName::Short ? "Small" : "");
 }
 
-Result<std::vector<FakeRateSaveData>> matjson::Serialize<std::vector<FakeRateSaveData>>::fromJson(const matjson::Value& value) {
-    if (!value.isArray()) return Err("Expected array");
-
-    return Ok(ranges::map<std::vector<FakeRateSaveData>>(value.asArray().unwrap(), [](const matjson::Value& item) {
-        return FakeRateSaveData {
-            .id = (int)item["id"].asInt().unwrapOr(0),
-            .stars = (int)item["stars"].asInt().unwrapOr(0),
-            .feature = (int)item["feature"].asInt().unwrapOr(0),
-            .difficulty = (int)item["difficulty"].asInt().unwrapOr(0),
-            .moreDifficultiesOverride = (int)item["more-difficulties-override"].asInt().unwrapOr(0),
-            .grandpaDemonOverride = (int)item["grandpa-demon-override"].asInt().unwrapOr(0),
-            .demonsInBetweenOverride = (int)item["demons-in-between-override"].asInt().unwrapOr(0),
-            .gddpIntegrationOverride = (int)item["gddp-integration-override"].asInt().unwrapOr(0),
-            .coins = item["coins"].asBool().unwrapOr(true)
-        };
-    }));
+Result<FakeRateSaveData> matjson::Serialize<FakeRateSaveData>::fromJson(const matjson::Value& value) {
+    if (!value.isObject()) return Err("Expected object");
+    FakeRateSaveData data;
+    if (auto id = value.get<int>("id").ok()) data.id = *id;
+    if (auto stars = value.get<int>("stars").ok()) data.stars = *stars;
+    if (auto feature = value.get<int>("feature").ok()) data.feature = *feature;
+    if (auto difficulty = value.get<int>("difficulty").ok()) data.difficulty = *difficulty;
+    if (auto mdo = value.get<int>("more-difficulties-override").ok()) data.moreDifficultiesOverride = *mdo;
+    if (auto gdo = value.get<int>("grandpa-demon-override").ok()) data.grandpaDemonOverride = *gdo;
+    if (auto dbo = value.get<int>("demons-in-between-override").ok()) data.demonsInBetweenOverride = *dbo;
+    if (auto gio = value.get<int>("gddp-integration-override").ok()) data.gddpIntegrationOverride = *gio;
+    if (auto coins = value.get<bool>("coins").ok()) data.coins = *coins;
+    return Ok(data);
 }
 
-matjson::Value matjson::Serialize<std::vector<FakeRateSaveData>>::toJson(const std::vector<FakeRateSaveData>& vec) {
-    return ranges::map<std::vector<matjson::Value>>(vec, [](const FakeRateSaveData& item) {
-        return matjson::makeObject({
-            { "id", item.id },
-            { "stars", item.stars },
-            { "feature", item.feature },
-            { "difficulty", item.difficulty },
-            { "more-difficulties-override", item.moreDifficultiesOverride },
-            { "grandpa-demon-override", item.grandpaDemonOverride },
-            { "demons-in-between-override", item.demonsInBetweenOverride },
-            { "gddp-integration-override", item.gddpIntegrationOverride },
-            { "coins", item.coins }
-        });
+matjson::Value matjson::Serialize<FakeRateSaveData>::toJson(const FakeRateSaveData& data) {
+    return matjson::makeObject({
+        { "id", data.id },
+        { "stars", data.stars },
+        { "feature", data.feature },
+        { "difficulty", data.difficulty },
+        { "more-difficulties-override", data.moreDifficultiesOverride },
+        { "grandpa-demon-override", data.grandpaDemonOverride },
+        { "demons-in-between-override", data.demonsInBetweenOverride },
+        { "gddp-integration-override", data.gddpIntegrationOverride },
+        { "coins", data.coins }
     });
 }

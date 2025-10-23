@@ -45,7 +45,7 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
         auto difficultySprite = GJDifficultySprite::create(m_difficulty, GJDifficultyName::Long);
         difficultySprite->updateFeatureState(feature);
         if (Loader::get()->isModLoaded("uproxide.more_difficulties") && m_moreDifficultiesOverride > 0
-            && m_grandpaDemonOverride == 0 && m_demonsInBetweenOverride == 0) {
+            && m_grandpaDemonOverride == 0 && m_demonsInBetweenOverride == 0 && m_gddpIntegrationOverride == 0) {
             auto mdSprite = CCSprite::createWithSpriteFrameName((m_legacy ?
                 fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}_Legacy.png", m_moreDifficultiesOverride)
                 : fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}.png", m_moreDifficultiesOverride)).c_str());
@@ -67,7 +67,8 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
             else if (i == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
             auto dibSprite = CCSprite::createWithSpriteFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn2_001.png",
                 m_demonsInBetweenOverride, dibFeature).c_str());
-            dibSprite->setPosition(difficultySprite->getContentSize() / 2 + FakeRate::getDIBOffset(m_demonsInBetweenOverride, GJDifficultyName::Long));
+            dibSprite->setPosition(
+                difficultySprite->getContentSize() / 2 + FakeRate::getDIBOffset(m_demonsInBetweenOverride, GJDifficultyName::Long));
             difficultySprite->setOpacity(0);
             difficultySprite->addChild(dibSprite);
         }
@@ -98,11 +99,10 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
 
     menuRow->updateLayout();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
-        [this, callback = std::move(callback)](auto) {
-            callback((int)m_feature);
-            onClose(nullptr);
-        });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+        callback((int)m_feature);
+        onClose(nullptr);
+    });
     confirmButton->setPosition({ 150.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

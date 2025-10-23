@@ -5,9 +5,10 @@ typedef std::function<void(int, int, int, int, int)> SetDifficultyCallback;
 
 class FRSetDifficultyPopup : public geode::Popup<const FakeRateSaveData&, bool, SetDifficultyCallback> {
 protected:
-    inline static constexpr std::array<std::pair<int, int>, 15> difficulties = { std::pair<int, int>
-        { 0, 0 }, { -1, 0 }, { 1, 0 }, { 2, 0 }, { 3, 4 }, { 3, 0 }, { 4, 0 }, { 4, 7 },
-        { 5, 0 }, { 5, 9 }, { 7, 0 }, { 8, 0 }, { 6, 0 }, { 9, 0 }, { 10, 0 }
+    static constexpr std::array<std::pair<int, int>, 15> difficulties = {
+        std::make_pair(0, 0), std::make_pair(-1, 0), std::make_pair(1, 0), std::make_pair(2, 0), std::make_pair(3, 4),
+        std::make_pair(3, 0), std::make_pair(4, 0), std::make_pair(4, 7), std::make_pair(5, 0), std::make_pair(5, 9),
+        std::make_pair(7, 0), std::make_pair(8, 0), std::make_pair(6, 0), std::make_pair(9, 0), std::make_pair(10, 0)
     };
 
     int m_difficulty;

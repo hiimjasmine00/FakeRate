@@ -14,11 +14,10 @@ TableNode* TableNode::create(int columns, int rows) {
 }
 
 bool TableNode::init(int columns, int rows) {
-    if (!CCNode::init()) return false;
+    if (!CCLayer::init()) return false;
 
-    setAnchorPoint({ 0.5f, 0.5f });
+    ignoreAnchorPointForPosition(false);
     m_menus = CCArray::create();
-    m_menus->retain();
     m_columns = columns;
     m_rows = rows;
 
@@ -44,11 +43,10 @@ void TableNode::setRowHeight(float rowHeight) {
     }
 }
 
-void TableNode::setRowPrefix(const std::string& rowPrefix) {
+void TableNode::setRowPrefix(std::string_view rowPrefix) {
     m_rowPrefix = rowPrefix;
     for (int i = 0; i < m_menus->count(); i++) {
-        auto menu = static_cast<CCNode*>(m_menus->objectAtIndex(i));
-        menu->setID(fmt::format("{}-{}", rowPrefix, i + 1));
+        static_cast<CCNode*>(m_menus->objectAtIndex(i))->setID(fmt::format("{}-{}", rowPrefix, i + 1));
     }
 }
 
@@ -68,11 +66,8 @@ void TableNode::addButton(CCMenuItem* button) {
         menu->setID(fmt::format("{}-{}", m_rowPrefix, m_menus->count() + 1));
         addChild(menu);
         m_menus->addObject(menu);
-    } else menu = static_cast<CCNode*>(m_menus->objectAtIndex(m_menus->count() - 1));
+    }
+    else menu = static_cast<CCNode*>(m_menus->objectAtIndex(m_menus->count() - 1));
 
     menu->addChild(button);
-}
-
-TableNode::~TableNode() {
-    CC_SAFE_RELEASE(m_menus);
 }

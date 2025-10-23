@@ -9,14 +9,20 @@ Expansive level rating customization.
 ## Credits
 - [Uproxide](user:25397826) - Creator of the More Difficulties mod
 - [ItzKiba](user:4569963) - Creator of the Grandpa Demon mod
-- [Minemaker0430](user:6635071) - Creator of the GDDP Integration mod
+- [MochaTheOtter](user:6635071) - Creator of the GDDP Integration mod
 - [hiimjasmine00](user:7466002) - Creator of the Demons In Between mod and this mod
 
 ## Gallery
-![Fake Rate Popup](hiimjustin000.fake_rate/fake-rate-popup.png?scale=0.9375)\
-![Difficulty Popup](hiimjustin000.fake_rate/difficulty-popup.png?scale=0.9375)\
-![Grandpa Demon Popup](hiimjustin000.fake_rate/grd-popup.png?scale=1.2)\
-![Demons In Between Popup](hiimjustin000.fake_rate/dib-popup.png?scale=0.9231)\
-![GDDP Integration Popup](hiimjustin000.fake_rate/gddp-popup.png?scale=0.9231)\
-![Stars Popup](hiimjustin000.fake_rate/stars-popup.png?scale=1.25)\
-![Feature Popup](hiimjustin000.fake_rate/feature-popup.png?scale=0.9375)
+![Fake Rate Popup](hiimjustin000.fake_rate/fake-rate-popup.png?width=300)
+
+![Difficulty Popup](hiimjustin000.fake_rate/difficulty-popup.png?width=300)
+
+![Grandpa Demon Popup](hiimjustin000.fake_rate/grd-popup.png?width=300)
+
+![Demons In Between Popup](hiimjustin000.fake_rate/dib-popup.png?width=300)
+
+![GDDP Integration Popup](hiimjustin000.fake_rate/gddp-popup.png?width=300)
+
+![Stars Popup](hiimjustin000.fake_rate/stars-popup.png?width=300)
+
+![Feature Popup](hiimjustin000.fake_rate/feature-popup.png?width=300)

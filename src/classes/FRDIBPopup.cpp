@@ -52,11 +52,10 @@ bool FRDIBPopup::setup(int demonsInBetweenOverride, SetDIBCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
-        [this, callback = std::move(callback)](auto) {
-            callback(m_demonsInBetweenOverride);
-            onClose(nullptr);
-        });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+        callback(m_demonsInBetweenOverride);
+        onClose(nullptr);
+    });
     confirmButton->setPosition({ 175.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

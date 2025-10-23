@@ -28,15 +28,13 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
     m_input->setCommonFilter(CommonFilter::Int);
     m_input->setPosition({ 125.0f, 80.0f });
     m_input->getInputNode()->setLabelPlaceholderColor({ 120, 170, 240 });
-    m_input->setString(std::to_string(m_stars));
+    m_input->setString(fmt::to_string(m_stars));
     m_input->setMaxCharCount(11);
     m_input->setCallback([this](const std::string& text) {
-        auto stars = numFromString<int64_t>(text).unwrapOr(0);
-        if (stars < INT_MIN) stars = INT_MIN;
-        if (stars > INT_MAX) stars = INT_MAX;
-        m_stars = stars;
-        m_label->setString(std::to_string(m_stars).c_str());
-        m_starLayout->updateLayout();
+        if (auto res = std::from_chars(text.data(), text.data() + text.size(), m_stars); res.ec == std::errc()) {
+            m_label->setString(fmt::to_string(m_stars).c_str());
+            m_starLayout->updateLayout();
+        }
     });
     m_input->setID("stars-input");
     m_mainLayer->addChild(m_input);
@@ -49,7 +47,7 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
     m_starLayout->setID("stars-layout");
     m_mainLayer->addChild(m_starLayout);
 
-    m_label = CCLabelBMFont::create(std::to_string(m_stars).c_str(), "bigFont.fnt");
+    m_label = CCLabelBMFont::create(fmt::to_string(m_stars).c_str(), "bigFont.fnt");
     m_label->setScale(0.4f);
     m_label->setID("stars-label");
     m_starLayout->addChild(m_label);
@@ -62,7 +60,7 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
 
     auto leftButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_leftBtn_001.png", 1.1f, [this](auto) {
         if (m_stars != INT_MIN) m_stars--;
-        auto stars = std::to_string(m_stars);
+        auto stars = fmt::to_string(m_stars);
         m_input->setString(stars);
         m_label->setString(stars.c_str());
         m_starLayout->updateLayout();
@@ -73,7 +71,7 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
 
     auto rightButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_rightBtn_001.png", 1.1f, [this](auto) {
         if (m_stars != INT_MAX) m_stars++;
-        auto stars = std::to_string(m_stars);
+        auto stars = fmt::to_string(m_stars);
         m_input->setString(stars);
         m_label->setString(stars.c_str());
         m_starLayout->updateLayout();
@@ -82,11 +80,10 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
     rightButton->setID("right-button");
     m_buttonMenu->addChild(rightButton);
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
-        [this, callback = std::move(callback)](auto) {
-            callback(m_stars);
-            onClose(nullptr);
-        });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+        callback(m_stars);
+        onClose(nullptr);
+    });
     confirmButton->setPosition({ 125.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

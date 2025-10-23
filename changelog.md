@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.16 (2025-10-23)
+- Added support for the new "Pearl Demon" difficulty from GDDP Integration
+
 ## v1.4.15 (2025-06-22)
 - Ported to Geode v4.6.1
 

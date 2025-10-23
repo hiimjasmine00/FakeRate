@@ -5,37 +5,21 @@
 #include <matjson.hpp>
 
 struct FakeRateSaveData {
-    int id;
-    int stars;
-    int feature;
-    int difficulty;
-    int moreDifficultiesOverride;
-    int grandpaDemonOverride;
-    int demonsInBetweenOverride;
-    int gddpIntegrationOverride;
-    bool coins;
+    int id = 0;
+    int stars = 0;
+    int feature = 0;
+    int difficulty = 0;
+    int moreDifficultiesOverride = 0;
+    int grandpaDemonOverride = 0;
+    int demonsInBetweenOverride = 0;
+    int gddpIntegrationOverride = 0;
+    bool coins = true;
 };
 
 class FakeRate {
-private:
-    inline static std::unordered_map<std::string, int> gddpIndices = {
-        { "Beginner", 1 },
-        { "Bronze", 2 },
-        { "Silver", 3 },
-        { "Gold", 4 },
-        { "Amber", 5 },
-        { "Platinum", 6 },
-        { "Sapphire", 7 },
-        { "Jade", 8 },
-        { "Emerald", 9 },
-        { "Ruby", 10 },
-        { "Diamond", 11 },
-        { "Onyx", 12 },
-        { "Amethyst", 13 },
-        { "Azurite", 14 },
-        { "Obsidian", 15 }
-    };
 public:
+    static std::vector<FakeRateSaveData> fakeRates;
+
     static int getBaseCurrency(int);
     static int getDifficultyFromLevel(GJGameLevel*);
     static std::string getSpriteName(cocos2d::CCSprite*);
@@ -48,7 +32,7 @@ public:
 };
 
 template<>
-struct matjson::Serialize<std::vector<FakeRateSaveData>> {
-    static geode::Result<std::vector<FakeRateSaveData>> fromJson(const matjson::Value& value);
-    static matjson::Value toJson(const std::vector<FakeRateSaveData>& vec);
+struct matjson::Serialize<FakeRateSaveData> {
+    static geode::Result<FakeRateSaveData> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const FakeRateSaveData& data);
 };

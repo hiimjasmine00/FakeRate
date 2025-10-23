@@ -54,7 +54,7 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
     m_mainLayer->addChild(table);
 
     int i = 1;
-    for (auto& [d, mdo] : difficulties) {
+    for (auto [d, mdo] : difficulties) {
         auto num = d == -1 ? "auto" : fmt::format("{:02d}", d);
         auto frameName = d > 5 ? fmt::format("difficulty_{}_btn2_001.png", num) : fmt::format("difficulty_{}_btn_001.png", num);
         if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties"); moreDifficulties && mdo > 0) {
@@ -65,12 +65,12 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
         }
         else if (mdo > 0) continue;
         auto toggle = CCMenuItemExt::createSpriteExtraWithFrameName(frameName.c_str(), 1.0f, [this, d, mdo](CCMenuItemSpriteExtra* sender) {
-            if (sender == m_selected) return;
             m_difficulty = d;
             m_moreDifficultiesOverride = mdo;
             m_grandpaDemonOverride = 0;
             m_demonsInBetweenOverride = 0;
             m_gddpIntegrationOverride = 0;
+            if (sender == m_selected) return;
             if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
             FakeRate::toggle(sender->getNormalImage(), true);
             m_selected = sender;
@@ -84,11 +84,10 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
-        [this, callback = std::move(callback)](auto) {
-            callback(m_difficulty, m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride);
-            onClose(nullptr);
-        });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+        callback(m_difficulty, m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride);
+        onClose(nullptr);
+    });
     confirmButton->setPosition({ 150.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

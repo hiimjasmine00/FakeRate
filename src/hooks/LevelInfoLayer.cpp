@@ -11,6 +11,10 @@ using namespace geode::prelude;
 class $modify(FRLevelInfoLayer, LevelInfoLayer) {
     struct Fields {
         FakeRateSaveData m_fakeRateData;
+        CCSprite* m_grandpaDemon;
+        CCSprite* m_grandpaInfinity;
+        CCSprite* m_betweenDemon;
+        CCSprite* m_gddpDemon;
         CCSprite* m_grandpaBackground1;
         CCSprite* m_grandpaBackground2;
         CCParticleSystemQuad* m_grandpaParticles1;
@@ -30,7 +34,8 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
 
         m_fields->m_backgroundColor = static_cast<CCSprite*>(getChildByID("background"))->getColor();
 
-        auto buttonSprite = CircleButtonSprite::createWithSprite("FR_fakeRateBtn_001.png"_spr, 1.0f, CircleBaseColor::Green, CircleBaseSize::Medium);
+        auto buttonSprite = CircleButtonSprite::createWithSprite(
+            "FR_fakeRateBtn_001.png"_spr, 1.0f, CircleBaseColor::Green, CircleBaseSize::Medium);
         buttonSprite->getTopNode()->setScale(1.0f);
         auto fakeRateButton = CCMenuItemSpriteExtra::create(buttonSprite, this, menu_selector(FRLevelInfoLayer::onFakeRate));
         fakeRateButton->setID("fake-rate-button"_spr);
@@ -44,7 +49,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
     }
 
     void onFakeRate(CCObject* sender) {
-        FREditPopup::create(m_level, m_fields->m_fakeRateData, [this](FakeRateSaveData data, bool remove) { updateFakeRate(data, remove); })->show();
+        FREditPopup::create(m_level, m_fields->m_fakeRateData, [this](FakeRateSaveData data, bool remove) {
+            updateFakeRate(data, remove);
+        })->show();
     }
 
     void levelDownloadFinished(GJGameLevel* level) override {
@@ -58,46 +65,46 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
     }
 
     void checkFakeRate() {
-        auto vec = Mod::get()->getSavedValue<std::vector<FakeRateSaveData>>("fake-rate", {});
+        auto levelID = m_level->m_levelID.value();
+        auto it = std::ranges::find(FakeRate::fakeRates, levelID, &FakeRateSaveData::id);
+        if (it != FakeRate::fakeRates.end()) updateFakeRate(*it, false);
+        else defaultFakeRate();
+    }
+
+    void defaultFakeRate() {
         auto level = m_level;
-        auto levelID = level->m_levelID.value();
-        auto it = std::ranges::find_if(vec, [levelID](const FakeRateSaveData& item) { return item.id == levelID; });
         auto stars = level->m_stars.value();
         auto starsRequested = level->m_starsRequested;
         auto grandpaDemon = static_cast<CCSprite*>(getChildByID("grd-difficulty"));
         auto demonInBetween = static_cast<CCSprite*>(getChildByID("hiimjustin000.demons_in_between/between-difficulty-sprite"));
         auto gddpDifficulty = static_cast<CCSprite*>(getChildByID("gddp-difficulty"));
-        auto gddpOverride = Loader::get()->isModLoaded("minemaker0430.gddp_integration") ?
-            Loader::get()->getLoadedMod("minemaker0430.gddp_integration")->getSettingValue<bool>("override-grandpa-demon") : false;
-        if (it != vec.end()) updateFakeRate(*it, false);
-        else {
-            auto mdo = 0;
-            if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties")) {
-                auto casual = moreDifficulties->getSavedValue<bool>("casual", true);
-                auto tough = moreDifficulties->getSavedValue<bool>("tough", true);
-                auto cruel = moreDifficulties->getSavedValue<bool>("cruel", true);
-                if (stars == 4 && casual) mdo = 4;
-                else if (stars == 7 && tough) mdo = 7;
-                else if (stars == 9 && cruel) mdo = 9;
-                else if (stars == 0) {
-                    if (starsRequested == 4 && casual) mdo = 4;
-                    else if (starsRequested == 7 && tough) mdo = 7;
-                    else if (starsRequested == 9 && cruel) mdo = 9;
-                }
+        auto gddpIntegration = Loader::get()->getLoadedMod("minemaker0430.gddp_integration");
+        auto gddpOverride = gddpIntegration ? gddpIntegration->getSettingValue<bool>("override-grandpa-demon") : false;
+        auto mdo = 0;
+        if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties")) {
+            auto casual = moreDifficulties->getSavedValue<bool>("casual", true);
+            auto tough = moreDifficulties->getSavedValue<bool>("tough", true);
+            auto cruel = moreDifficulties->getSavedValue<bool>("cruel", true);
+            if (stars == 4 && casual) mdo = 4;
+            else if (stars == 7 && tough) mdo = 7;
+            else if (stars == 9 && cruel) mdo = 9;
+            else if (stars == 0) {
+                if (starsRequested == 4 && casual) mdo = 4;
+                else if (starsRequested == 7 && tough) mdo = 7;
+                else if (starsRequested == 9 && cruel) mdo = 9;
             }
-            m_fields->m_fakeRateData = {
-                .id = level->m_levelID,
-                .stars = stars,
-                .feature = level->m_featured > 1 ? level->m_isEpic + 1 : 0,
-                .difficulty = FakeRate::getDifficultyFromLevel(m_level),
-                .moreDifficultiesOverride = mdo,
-                .grandpaDemonOverride = grandpaDemon && (!gddpOverride || !gddpDifficulty) ? FakeRate::getGRDOverride(grandpaDemon) : 0,
-                .demonsInBetweenOverride = demonInBetween ? FakeRate::getDIBOverride(demonInBetween) : 0,
-                .gddpIntegrationOverride =
-                    gddpDifficulty && (!grandpaDemon || gddpOverride) && !demonInBetween ? FakeRate::getGDDPOverride(gddpDifficulty) : 0,
-                .coins = level->m_coinsVerified > 0
-            };
         }
+        auto& fakeRateData = m_fields->m_fakeRateData;
+        fakeRateData.id = level->m_levelID.value();
+        fakeRateData.stars = stars;
+        fakeRateData.feature = level->m_featured > 0 ? level->m_isEpic + 1 : 0;
+        fakeRateData.difficulty = FakeRate::getDifficultyFromLevel(m_level);
+        fakeRateData.moreDifficultiesOverride = mdo;
+        fakeRateData.grandpaDemonOverride = grandpaDemon && (!gddpOverride || !gddpDifficulty) ? FakeRate::getGRDOverride(grandpaDemon) : 0;
+        fakeRateData.demonsInBetweenOverride = demonInBetween ? FakeRate::getDIBOverride(demonInBetween) : 0;
+        fakeRateData.gddpIntegrationOverride =
+            gddpDifficulty && (!grandpaDemon || gddpOverride) && !demonInBetween ? FakeRate::getGDDPOverride(gddpDifficulty) : 0;
+        fakeRateData.coins = level->m_coinsVerified > 0;
     }
 
     void updateFakeRate(const FakeRateSaveData& data, bool remove) {
@@ -112,30 +119,25 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         auto level = m_level;
         auto levelID = level->m_levelID.value();
         auto f = m_fields.self();
-        f->m_fakeRateData = {
-            .id = levelID,
-            .stars = stars,
-            .feature = feature,
-            .difficulty = difficulty,
-            .moreDifficultiesOverride = mdo,
-            .grandpaDemonOverride = gdo,
-            .demonsInBetweenOverride = dbo,
-            .gddpIntegrationOverride = gio,
-            .coins = coins
-        };
+        auto& fakeRateData = f->m_fakeRateData;
+        fakeRateData.id = levelID;
+        fakeRateData.stars = stars;
+        fakeRateData.feature = feature;
+        fakeRateData.difficulty = difficulty;
+        fakeRateData.moreDifficultiesOverride = mdo;
+        fakeRateData.grandpaDemonOverride = gdo;
+        fakeRateData.demonsInBetweenOverride = dbo;
+        fakeRateData.gddpIntegrationOverride = gio;
+        fakeRateData.coins = coins;
 
         if (!f->m_fakeRateApplied) {
             f->m_fakeRateApplied = true;
             f->m_backgroundColor = static_cast<CCSprite*>(getChildByID("background"))->getColor();
             auto gdutils = Loader::get()->getLoadedMod("gdutilsdevs.gdutils");
-            if (gdutils && gdutils->getSettingValue<bool>("activate-background"))
+            if (gdutils && gdutils->getSettingValue<bool>("activate-background")) {
                 f->m_backgroundColor = gdutils->getSettingValue<ccColor3B>("background");
+            }
         }
-
-        f->m_grandpaBackground1 = static_cast<CCSprite*>(getChildByID("grandpa-background-1"_spr));
-        f->m_grandpaBackground2 = static_cast<CCSprite*>(getChildByID("grandpa-background-2"_spr));
-        f->m_grandpaParticles1 = static_cast<CCParticleSystemQuad*>(getChildByID("grandpa-particles-1"_spr));
-        f->m_grandpaParticles2 = static_cast<CCParticleSystemQuad*>(getChildByID("grandpa-particles-2"_spr));
 
         auto hide = false;
         if (auto betweenDifficultySprite = static_cast<CCSprite*>(getChildByID("hiimjustin000.demons_in_between/between-difficulty-sprite"))) {
@@ -150,9 +152,10 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             gddpOverride = gddpIntegration ? gddpIntegration->getSettingValue<bool>("override-grandpa-demon") : false;
             gddpDifficultySprite->setVisible(remove);
             m_difficultySprite->setOpacity(remove ? 0 : 255);
-            if (FakeRate::getSpriteName(gddpDifficultySprite).find("Plus") != std::string::npos) {
-                if (auto epicSprite = getChildBySpriteFrameName(m_difficultySprite, "GJ_epicCoin_001.png"))
+            if (FakeRate::getSpriteName(gddpDifficultySprite).contains("Plus")) {
+                if (auto epicSprite = getChildBySpriteFrameName(m_difficultySprite, "GJ_epicCoin_001.png")) {
                     epicSprite->setVisible(!Loader::get()->isModLoaded("uproxide.animated_fire") && !remove);
+                }
             }
             hide = remove || hide;
             f->m_fakeRateData.gddpIntegrationOverride = remove ? FakeRate::getGDDPOverride(gddpDifficultySprite) : gio;
@@ -164,7 +167,8 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             if (Loader::get()->isModLoaded("uproxide.animated_fire")) removeChildByTag(69420);
             auto hasDemon = false;
             for (auto child : CCArrayExt<CCNode*>(getChildren())) {
-                if (child->getID() == "grd-difficulty") {
+                auto& childID = child->getID();
+                if (childID == "grd-difficulty") {
                     child->setVisible(remove);
                     hasDemon = true;
                 }
@@ -172,9 +176,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
                 auto bgNum = 0;
                 if (isSpriteName(child, "itzkiba.grandpa_demon/GrD_demon4_bg.png") &&
                     child != f->m_grandpaBackground1 && child != f->m_grandpaBackground2) {
-                    if (child->getID() == "") child->setID(fmt::format("grd-bg-{}", ++bgNum));
-                    if (child->getID() == "grd-bg-1") child->setVisible(remove);
-                    else if (child->getID() == "grd-bg-2") child->setVisible(remove);
+                    if (childID == "") child->setID(fmt::format("grd-bg-{}", ++bgNum));
+                    if (childID == "grd-bg-1") child->setVisible(remove);
+                    else if (childID == "grd-bg-2") child->setVisible(remove);
                     hasDemon = true;
                     hasEffects = true;
                 }
@@ -182,9 +186,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
                 auto particleNum = 0;
                 if (typeinfo_cast<CCParticleSystemQuad*>(child) && child->getPositionY() == winSize.height / 2 + 76.0f &&
                     child != f->m_grandpaParticles1 && child != f->m_grandpaParticles2) {
-                    if (child->getID() == "") child->setID(fmt::format("grd-particles-{}", ++particleNum));
-                    if (child->getID() == "grd-particles-1") child->setVisible(remove);
-                    else if (child->getID() == "grd-particles-2") child->setVisible(remove);
+                    if (childID == "") child->setID(fmt::format("grd-particles-{}", ++particleNum));
+                    if (childID == "grd-particles-1") child->setVisible(remove);
+                    else if (childID == "grd-particles-2") child->setVisible(remove);
                     hasDemon = true;
                     hasEffects = true;
                 }
@@ -193,8 +197,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             m_difficultySprite->setVisible(true);
             m_difficultySprite->setOpacity(hasDemon && remove ? 0 : 255);
             hide = (hasDemon && remove) || hide;
-            if (auto featureGlow = m_difficultySprite->getChildByTag(69420))
+            if (auto featureGlow = m_difficultySprite->getChildByTag(69420)) {
                 featureGlow->setPosition(m_difficultySprite->getContentSize() / 2);
+            }
             f->m_fakeRateData.grandpaDemonOverride =
                 hasDemon && remove ? FakeRate::getGRDOverride(static_cast<CCSprite*>(getChildByID("grd-difficulty"))) : gdo;
         }
@@ -210,17 +215,17 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         m_starsIcon->setPosition({ position.x + 8.0f, position.y - 30.0f - (isDemon ? 9.0f : 0.0f) });
         m_starsIcon->setVisible(showStars);
         m_starsLabel->setPosition({ m_starsIcon->getPositionX() - 8.0f, m_starsIcon->getPositionY() });
-        m_starsLabel->setString(std::to_string(stars).c_str());
+        m_starsLabel->setString(fmt::to_string(stars).c_str());
         m_starsLabel->setVisible(showStars);
         if (gsm->hasCompletedLevel(m_level)) m_starsLabel->setColor({ 255, 255, 50 });
 
-        auto coinY = position.y - 31.5f - (showStars ? 14.0f : 0.0f) - (level->m_gauntletLevel || dailyID > 0 ? 14.5f : 0.0f) - (isDemon ? 9.0f : 0.0f);
-        auto coinSuffix = dailyID > 0 ? fmt::format("_{}", dailyID) : level->m_gauntletLevel ? "_g" : "";
+        auto coinY = position.y - 31.5f - (showStars ? 14.0f : 0.0f)
+            - (level->m_gauntletLevel || dailyID > 0 ? 14.5f : 0.0f) - (isDemon ? 9.0f : 0.0f);
         for (int i = 0; i < m_coins->count(); i++) {
             auto coin = static_cast<CCSprite*>(m_coins->objectAtIndex(i));
             coin->setPositionY(coinY);
-            auto coinStr = fmt::format("{}_{}{}", levelID, i + 1, coinSuffix);
-            auto hasCoin = gsm->hasUserCoin(coinStr.c_str()) || gsm->hasPendingUserCoin(coinStr.c_str());
+            auto coinKey = level->getCoinKey(i + 1);
+            auto hasCoin = gsm->hasUserCoin(coinKey) || gsm->hasPendingUserCoin(coinKey);
             if (coins) coin->setColor(hasCoin ? ccColor3B { 255, 255, 255 } : ccColor3B { 165, 165, 165 });
             else coin->setColor(hasCoin ? ccColor3B { 255, 175, 75 } : ccColor3B { 165, 113, 48 });
         }
@@ -230,7 +235,7 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             auto diamondLabel = static_cast<CCLabelBMFont*>(getChildByID("diamond-label"));
             auto diamondIcon = getChildByID("diamond-icon");
             auto diamonds = stars > 1 ? stars + 2 : 0;
-            diamondLabel->setString(fmt::format("{}/{}", (int)floorf(diamonds * normalPercent / 100.0f), diamonds).c_str());
+            diamondLabel->setString(fmt::format("{}/{}", (int)floor(diamonds * normalPercent / 100.0), diamonds).c_str());
             diamondIcon->setPosition({
                 position.x + diamondLabel->getScaledContentWidth() * 0.5f + 2.0f,
                 position.y - (isDemon ? 9.0f : 0.0f) - 44.5f
@@ -254,9 +259,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             m_orbsIcon->setPositionY(yPos - yOffset * 2.0f);
             m_orbsLabel->setPositionY(m_orbsIcon->getPositionY());
             auto orbs = FakeRate::getBaseCurrency(stars);
-            int totalOrbs = floorf(orbs * 1.25f);
+            int totalOrbs = floor(orbs * 1.25);
             m_orbsLabel->setString(
-                fmt::format("{}/{}", (int)floorf(normalPercent != 100 ? orbs * normalPercent / 100.0f : totalOrbs), totalOrbs).c_str());
+                fmt::format("{}/{}", (int)floor(normalPercent != 100 ? orbs * normalPercent / 100.0 : totalOrbs), totalOrbs).c_str());
             m_orbsLabel->limitLabelWidth(60.0f, 0.5f, 0.0f);
         }
         if (m_exactLengthLabel->isVisible()) m_exactLengthLabel->setPositionY(m_lengthLabel->getPositionY() - 14.0f);
@@ -271,13 +276,18 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             auto moreDifficultiesOverride = mdo;
             auto starsRequested = level->m_starsRequested;
             auto stars = level->m_stars.value();
-            if (remove && stars == 0 && (starsRequested == 4 || starsRequested == 7 || starsRequested == 9)) moreDifficultiesOverride = starsRequested;
+            if (remove && stars == 0 && (starsRequested == 4 || starsRequested == 7 || starsRequested == 9)) {
+                moreDifficultiesOverride = starsRequested;
+            }
             if (remove && (stars == 4 || stars == 7 || stars == 9)) moreDifficultiesOverride = stars;
             if (moreDifficultiesOverride == 4 && !moreDifficulties->getSavedValue("casual", true)) moreDifficultiesOverride = 0;
             if (moreDifficultiesOverride == 7 && !moreDifficulties->getSavedValue("tough", true)) moreDifficultiesOverride = 0;
             if (moreDifficultiesOverride == 9 && !moreDifficulties->getSavedValue("cruel", true)) moreDifficultiesOverride = 0;
 
-            if ((moreDifficultiesOverride == 4 || moreDifficultiesOverride == 7 || moreDifficultiesOverride == 9) && gdo <= 0 && dbo <= 0 && gio <= 0) {
+            if (
+                (moreDifficultiesOverride == 4 || moreDifficultiesOverride == 7 || moreDifficultiesOverride == 9)
+                && gdo <= 0 && dbo <= 0 && gio <= 0
+            ) {
                 auto legacy = moreDifficulties->getSettingValue<bool>("legacy-difficulties");
                 if (!moreDifficultiesSprite) {
                     moreDifficultiesSprite = CCSprite::createWithSpriteFrameName(fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}{}.png",
@@ -286,8 +296,8 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
                     addChild(moreDifficultiesSprite, 3);
                 }
                 else {
-                    moreDifficultiesSprite->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
-                        fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}{}.png", moreDifficultiesOverride, legacy ? "_Legacy" : "").c_str()));
+                    moreDifficultiesSprite->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(fmt::format(
+                        "uproxide.more_difficulties/MD_Difficulty{:02d}{}.png", moreDifficultiesOverride, legacy ? "_Legacy" : "").c_str()));
                     moreDifficultiesSprite->setVisible(true);
                 }
 
@@ -311,27 +321,42 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         static_cast<CCSprite*>(getChildByID("bottom-left-art"))->setOpacity(showBackground ? 50 : 255);
         static_cast<CCSprite*>(getChildByID("bottom-right-art"))->setOpacity(showBackground ? 50 : 255);
 
+        if (f->m_grandpaDemon) {
+            f->m_grandpaDemon->removeFromParent();
+            f->m_grandpaDemon = nullptr;
+        }
+        if (f->m_grandpaInfinity) {
+            f->m_grandpaInfinity->removeFromParent();
+            f->m_grandpaInfinity = nullptr;
+        }
+        if (f->m_grandpaBackground1) {
+            f->m_grandpaBackground1->removeFromParent();
+            f->m_grandpaBackground1 = nullptr;
+        }
+        if (f->m_grandpaBackground2) {
+            f->m_grandpaBackground2->removeFromParent();
+            f->m_grandpaBackground2 = nullptr;
+        }
+        if (f->m_grandpaParticles1) {
+            f->m_grandpaParticles1->removeFromParent();
+            f->m_grandpaParticles1 = nullptr;
+        }
+        if (f->m_grandpaParticles2) {
+            f->m_grandpaParticles2->removeFromParent();
+            f->m_grandpaParticles2 = nullptr;
+        }
+
         if (Loader::get()->isModLoaded("itzkiba.grandpa_demon") && gdo > 0 && gdo < 7) {
-            if (auto fakeGrandpaDemon = getChildByID("grandpa-demon-sprite"_spr)) {
-                fakeGrandpaDemon->removeFromParent();
-                if (auto fakeGrandpaInfinity = getChildByID("grandpa-demon-infinity"_spr)) fakeGrandpaInfinity->removeFromParent();
-            }
-
-            auto grdSprite = CCSprite::createWithSpriteFrameName(fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", gdo - 1).c_str());
-            grdSprite->setID("grandpa-demon-sprite"_spr);
-            grdSprite->setPosition(position);
-            addChild(grdSprite, 13);
+            f->m_grandpaDemon = CCSprite::createWithSpriteFrameName(fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", gdo - 1).c_str());
+            f->m_grandpaDemon->setID("grandpa-demon-sprite"_spr);
+            f->m_grandpaDemon->setPosition(position);
+            addChild(f->m_grandpaDemon, 13);
             if (gdo == 5) {
-                auto grdInfinity = FREffects::grdInfinity();
-                grdInfinity->setID("grandpa-demon-infinity"_spr);
-                grdInfinity->setPosition(position + CCPoint { -0.4f, 14.0f });
-                addChild(grdInfinity);
-            } else if (auto grdInfinity = getChildByID("grandpa-demon-infinity"_spr)) grdInfinity->removeFromParent();
-
-            if (f->m_grandpaBackground1) f->m_grandpaBackground1->removeFromParent();
-            if (f->m_grandpaBackground2) f->m_grandpaBackground2->removeFromParent();
-            if (f->m_grandpaParticles1) f->m_grandpaParticles1->removeFromParent();
-            if (f->m_grandpaParticles2) f->m_grandpaParticles2->removeFromParent();
+                f->m_grandpaInfinity = FREffects::grdInfinity();
+                f->m_grandpaInfinity->setID("grandpa-demon-infinity"_spr);
+                f->m_grandpaInfinity->setPosition(position + CCPoint { -0.4f, 14.0f });
+                addChild(f->m_grandpaInfinity);
+            }
 
             if (showBackground) {
                 switch (gdo) {
@@ -361,26 +386,20 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             }
 
             if (!grandpaDemon->getSettingValue<bool>("particles-disable") && gdo > 2) {
-                auto particles1 = "";
-                auto particles2 = "";
-                switch (gdo) {
-                    case 3: particles1 = "legendaryEffect.plist"_spr; break;
-                    case 4: particles1 = "mythicalEffect.plist"_spr; break;
-                    case 5: particles1 = "infiniteEffect.plist"_spr; particles2 = "infiniteSunEffect.plist"_spr; break;
-                    case 6: particles1 = "grandpaEffect.plist"_spr; particles2 = "infiniteSunEffect.plist"_spr; break;
-                }
-
                 auto particlePos = position + CCPoint { 0.0f, 5.0f };
-                if (strlen(particles1) > 0) {
+                if (gdo < 7) {
+                    constexpr std::array particles = {
+                        "legendaryEffect.plist"_spr, "mythicalEffect.plist"_spr, "infiniteEffect.plist"_spr, "grandpaEffect.plist"_spr
+                    };
                     f->m_grandpaParticles1 = CCParticleSystemQuad::create();
-                    f->m_grandpaParticles1->initWithDictionary(CCDictionary::createWithContentsOfFileThreadSafe(particles1), false);
+                    f->m_grandpaParticles1->initWithDictionary(CCDictionary::createWithContentsOfFile(particles[gdo - 3]), false);
                     f->m_grandpaParticles1->setPosition(particlePos);
                     f->m_grandpaParticles1->setID("grandpa-particles-1"_spr);
                     addChild(f->m_grandpaParticles1);
                 }
-                if (strlen(particles2) > 0) {
+                if (gdo > 4 && gdo < 7) {
                     f->m_grandpaParticles2 = CCParticleSystemQuad::create();
-                    f->m_grandpaParticles2->initWithDictionary(CCDictionary::createWithContentsOfFileThreadSafe(particles2), false);
+                    f->m_grandpaParticles2->initWithDictionary(CCDictionary::createWithContentsOfFile("infiniteSunEffect.plist"_spr), false);
                     f->m_grandpaParticles2->setPosition(particlePos);
                     f->m_grandpaParticles2->setID("grandpa-particles-2"_spr);
                     addChild(f->m_grandpaParticles2);
@@ -389,64 +408,59 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
 
             m_difficultySprite->setOpacity(0);
         }
-        else if (auto grdSprite = getChildByID("grandpa-demon-sprite"_spr)) {
-            grdSprite->removeFromParent();
-            if (auto grdInfinity = getChildByID("grandpa-demon-infinity"_spr)) grdInfinity->removeFromParent();
-            if (f->m_grandpaBackground1) f->m_grandpaBackground1->removeFromParent();
-            if (f->m_grandpaBackground2) f->m_grandpaBackground2->removeFromParent();
-            if (f->m_grandpaParticles1) f->m_grandpaParticles1->removeFromParent();
-            if (f->m_grandpaParticles2) f->m_grandpaParticles2->removeFromParent();
+
+        if (f->m_betweenDemon) {
+            f->m_betweenDemon->removeFromParent();
+            f->m_betweenDemon = nullptr;
         }
 
-        if (Loader::get()->isModLoaded("hiimjustin000.demons_in_between") && dbo > 0 && dbo < 21) {
-            if (auto fakeBetweenDemon = getChildByID("between-difficulty-sprite"_spr)) fakeBetweenDemon->removeFromParent();
-
-            auto demonsInBetween = Loader::get()->getLoadedMod("hiimjustin000.demons_in_between");
+        if (auto demonsInBetween = Loader::get()->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && dbo > 0 && dbo < 21) {
             auto dibFeature = "";
             if (feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
             else if (feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
-            auto dibSprite = CCSprite::createWithSpriteFrameName(
+            f->m_betweenDemon = CCSprite::createWithSpriteFrameName(
                 fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn2_001.png", dbo, dibFeature).c_str());
-            dibSprite->setID("between-difficulty-sprite"_spr);
-            dibSprite->setPosition(position + FakeRate::getDIBOffset(dbo, GJDifficultyName::Long));
-            addChild(dibSprite, 3);
+            f->m_betweenDemon->setID("between-difficulty-sprite"_spr);
+            f->m_betweenDemon->setPosition(position + FakeRate::getDIBOffset(dbo, GJDifficultyName::Long));
+            addChild(f->m_betweenDemon, 3);
             m_difficultySprite->setOpacity(0);
         }
-        else if (auto dibSprite = getChildByID("between-difficulty-sprite"_spr)) dibSprite->removeFromParent();
 
-        if (Loader::get()->isModLoaded("minemaker0430.gddp_integration") && gio > 0 && gio < 16) {
-            if (auto fakeGDDP = getChildByID("gddp-difficulty"_spr)) fakeGDDP->removeFromParent();
+        if (f->m_gddpDemon) {
+            f->m_gddpDemon->removeFromParent();
+            f->m_gddpDemon = nullptr;
+        }
 
-            auto gddpSprite = CCSprite::createWithSpriteFrameName(FakeRate::getGDDPFrame(gio, GJDifficultyName::Long).c_str());
-            gddpSprite->setID("gddp-difficulty"_spr);
-            gddpSprite->setPosition(position + CCPoint { 0.25f, 30.0f });
-            gddpSprite->setAnchorPoint({ 0.5f, 1.0f });
-            addChild(gddpSprite, 3);
+        if (Loader::get()->isModLoaded("minemaker0430.gddp_integration") && gio > 0 && gio < 17) {
+            f->m_gddpDemon = CCSprite::createWithSpriteFrameName(FakeRate::getGDDPFrame(gio, GJDifficultyName::Long).c_str());
+            f->m_gddpDemon->setID("gddp-difficulty"_spr);
+            f->m_gddpDemon->setPosition(position + CCPoint { 0.25f, 30.0f });
+            f->m_gddpDemon->setAnchorPoint({ 0.5f, 1.0f });
+            addChild(f->m_gddpDemon, 3);
             m_difficultySprite->setOpacity(0);
         }
-        else if (auto gddpSprite = getChildByID("gddp-difficulty"_spr)) gddpSprite->removeFromParent();
     }
 };
 
 #ifdef GEODE_IS_MACOS // Stupid likedItem inline expansion hook
 static_assert(GEODE_COMP_GD_VERSION == 22074, "Please update this hook for the current GD version");
 
-#define LevelInfoLayer_likedItem_432 base::get() + GEODE_ARM_MAC(0x256f58) GEODE_INTEL_MAC(0x2b1040)
-void LevelInfoLayer_likedItem(void* self, LikeItemType type, int id, bool liked) {
-    reinterpret_cast<void(*)(void*, LikeItemType, int, bool)>(LevelInfoLayer_likedItem_432)(self, type, id, liked);
+uintptr_t likedItemAddress = base::get() + GEODE_ARM_MAC(0x256f58) GEODE_INTEL_MAC(0x2b1040);
+void likedItemHook(void* self, LikeItemType type, int id, bool liked) {
+    reinterpret_cast<void(*)(void*, LikeItemType, int, bool)>(likedItemAddress)(self, type, id, liked);
     reinterpret_cast<FRLevelInfoLayer*>((reinterpret_cast<uintptr_t>(self) - 0x1b0))->checkFakeRate();
 }
 
 $execute {
-    (void)Mod::get()->hook(
-        reinterpret_cast<void*>(LevelInfoLayer_likedItem_432),
-        &LevelInfoLayer_likedItem,
-        "LevelInfoLayer::likedItem (+0x1b0)",
-        tulip::hook::TulipConvention::Thiscall
-    ).map([](Hook* hook) {
-        return hook->setPriority(-100), hook;
-    }).mapErr([](const std::string& err) {
-        return log::error("Failed to hook LevelInfoLayer::likedItem (+0x1b0): {}", err), err;
-    });
+    auto hook = Hook::create(
+        reinterpret_cast<void*>(likedItemAddress),
+        &likedItemHook,
+        "LevelInfoLayer::LikeItemDelegate::likedItem",
+        tulip::hook::TulipConvention::Default
+    );
+    hook->setPriority(-100);
+    if (auto err = Mod::get()->claimHook(hook).err()) {
+        log::error("Failed to hook LevelInfoLayer::LikeItemDelegate::likedItem: {}", *err);
+    }
 };
 #endif

@@ -51,11 +51,10 @@ bool FRGRDPopup::setup(int grandpaDemonOverride, SetGRDCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", "goldFont.fnt", "GJ_button_01.png", 0.8f),
-        [this, callback = std::move(callback)](auto) {
-            callback(m_grandpaDemonOverride);
-            onClose(nullptr);
-        });
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+        callback(m_grandpaDemonOverride);
+        onClose(nullptr);
+    });
     confirmButton->setPosition({ 125.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);

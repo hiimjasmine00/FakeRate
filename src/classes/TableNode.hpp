@@ -1,8 +1,9 @@
 #include <Geode/ui/Layout.hpp>
+#include <Geode/utils/cocos.hpp>
 
-class TableNode : public cocos2d::CCNode {
+class TableNode : public cocos2d::CCLayer {
 protected:
-    cocos2d::CCArray* m_menus;
+    geode::Ref<cocos2d::CCArray> m_menus;
     geode::AxisLayout* m_columnLayout;
     geode::AxisLayout* m_rowLayout;
     int m_columns;
@@ -17,9 +18,7 @@ public:
     void setColumnLayout(geode::AxisLayout*);
     void setRowLayout(geode::AxisLayout*);
     void setRowHeight(float);
-    void setRowPrefix(const std::string&);
+    void setRowPrefix(std::string_view);
     void updateAllLayouts();
     void addButton(cocos2d::CCMenuItem*);
-
-    ~TableNode() override;
 };

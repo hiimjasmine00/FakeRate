@@ -23,12 +23,11 @@ protected:
     cocos2d::CCSprite* m_gddpSprite;
     cocos2d::CCSprite* m_starSprite;
     cocos2d::CCLabelBMFont* m_starsLabel;
-    cocos2d::CCArray* m_coinSprites;
+    geode::Ref<cocos2d::CCArray> m_coinSprites;
+    UpdateFakeRateCallback m_callback;
 
     bool setup(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback) override;
     void updateLabels();
 public:
     static FREditPopup* create(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback);
-
-    ~FREditPopup() override;
 };
