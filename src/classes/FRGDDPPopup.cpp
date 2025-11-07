@@ -1,9 +1,10 @@
 #include "FRGDDPPopup.hpp"
-#include "TableNode.hpp"
 #include "../FakeRate.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
+#include <jasmine/nodes.hpp>
 
 using namespace geode::prelude;
+using namespace jasmine::nodes;
 
 FRGDDPPopup* FRGDDPPopup::create(int gddpIntegrationOverride, SetGDDPCallback callback) {
     auto ret = new FRGDDPPopup();
@@ -26,12 +27,7 @@ bool FRGDDPPopup::setup(int gddpIntegrationOverride, SetGDDPCallback callback) {
     m_noElasticity = true;
     m_gddpIntegrationOverride = gddpIntegrationOverride;
 
-    auto table = TableNode::create(4, 4);
-    table->setColumnLayout(ColumnLayout::create()->setAxisReverse(true));
-    table->setRowLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Even));
-    table->setRowHeight(60.0f);
-    table->setRowPrefix("gddp-button-row");
-    table->setContentSize({ 250.0f, 180.0f });
+    auto table = TableNode::create(4, 4, 250.0f, 180.0f, "gddp-button-row");
     table->setPosition({ 125.0f, 130.0f });
     table->setID("gddp-buttons");
     m_mainLayer->addChild(table);

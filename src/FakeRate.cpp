@@ -1,6 +1,7 @@
 #include "FakeRate.hpp"
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <jasmine/convert.hpp>
 
 using namespace geode::prelude;
 
@@ -33,26 +34,15 @@ $on_mod(DataSaved) {
     Mod::get()->setSavedValue("fake-rate", FakeRate::fakeRates);
 }
 
-int FakeRate::getBaseCurrency(int stars) {
-    switch (stars) {
-        case 0: case 1: return 0;
-        case 2: return 40;
-        case 3: return 60;
-        case 4: return 100;
-        case 5: return 140;
-        case 6: return 180;
-        case 7: return 220;
-        case 8: return 280;
-        case 9: return 340;
-        default: return 400;
-    }
+FakeRateSaveData* FakeRate::getFakeRate(GJGameLevel* level) {
+    auto it = std::ranges::find(FakeRate::fakeRates, level->m_levelID.value(), &FakeRateSaveData::id);
+    return it != FakeRate::fakeRates.end() ? std::to_address(it) : nullptr;
 }
 
 int FakeRate::getDifficultyFromLevel(GJGameLevel* level) {
-    if (level->m_demon > 0) return level->m_demonDifficulty > 0 ? level->m_demonDifficulty + 4 : 6;
+    if (level->m_demon > 0) return level->demonIconForDifficulty((DemonDifficultyType)level->m_demonDifficulty);
     else if (level->m_autoLevel) return -1;
-    else if (level->m_ratings < 5) return 0;
-    else return level->m_ratingsSum / level->m_ratings;
+    else return level->getAverageDifficulty();
 }
 
 std::string FakeRate::getSpriteName(CCSprite* sprite) {
@@ -82,29 +72,23 @@ void FakeRate::toggle(CCNode* node, bool enabled) {
 }
 
 CCPoint FakeRate::getDIBOffset(int difficulty, GJDifficultyName name) {
-    switch (difficulty) {
-        case 1: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.0f } : CCPoint { -0.125f, -0.25f };
-        case 2: return name == GJDifficultyName::Long ? CCPoint { 0.125f, -5.0f } : CCPoint { -0.125f, -0.25f };
-        case 3: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.0f } : CCPoint { -0.125f, -0.25f };
-        case 4: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.125f } : CCPoint { -0.125f, -0.375f };
-        case 5: return name == GJDifficultyName::Long ? CCPoint { 0.25f, -5.0f } : CCPoint { -0.125f, -0.25f };
-        case 6: return name == GJDifficultyName::Long ? CCPoint { 0.125f, -4.75f } : CCPoint { -0.125f, -0.25f };
-        case 7: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -5.0f } : CCPoint { -0.125f, -0.375f };
-        case 8: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { -0.125f, 0.5f };
-        case 9: return name == GJDifficultyName::Long ? CCPoint { -0.125f, -4.125f } : CCPoint { -0.125f, 0.5f };
-        case 10: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.0f } : CCPoint { -0.125f, 0.25f };
-        case 11: return name == GJDifficultyName::Long ? CCPoint { -0.125f, -4.125f } : CCPoint { -0.125f, 0.5f };
-        case 12: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { 0.125f, 0.5f };
-        case 13: return name == GJDifficultyName::Long ? CCPoint { 0.125f, -4.125f } : CCPoint { 0.125f, 0.5f };
-        case 14: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { 0.125f, 0.5f };
-        case 15: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -4.125f } : CCPoint { 0.0f, 0.5f };
-        case 16: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.625f } : CCPoint { 0.0f, 1.25f };
-        case 17: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.625f } : CCPoint { 0.0f, 1.25f };
-        case 18: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.5f } : CCPoint { 0.0f, 1.125f };
-        case 19: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.5f } : CCPoint { 0.0f, 1.125f };
-        case 20: return name == GJDifficultyName::Long ? CCPoint { 0.0f, -3.5f } : CCPoint { 0.0f, 1.125f };
-        default: return CCPoint { 0.0f, 0.0f };
-    }
+    constexpr std::array<CCPoint, 21> longOffsets = {
+        CCPoint { 0.0f, 0.0f },
+        { 0.0f, -5.0f }, { 0.125f, -5.0f }, { 0.0f, -5.0f }, { 0.0f, -5.125f }, { 0.25f, -5.0f },
+        { 0.125f, -4.75f }, { 0.0f, -5.0f }, { 0.0f, -4.125f }, { -0.125f, -4.125f }, { 0.0f, -4.0f },
+        { -0.125f, -4.125f }, { 0.0f, -4.125f }, { 0.125f, -4.125f }, { 0.0f, -4.125f }, { 0.0f, -4.125f },
+        { 0.0f, -3.625f }, { 0.0f, -3.625f }, { 0.0f, -3.5f }, { 0.0f, -3.5f }, { 0.0f, -3.5f }
+    };
+    constexpr std::array<CCPoint, 21> shortOffsets = {
+        CCPoint { 0.0f, 0.0f },
+        { -0.125f, -0.25f }, { -0.125f, -0.25f }, { -0.125f, -0.25f }, { -0.125f, -0.375f }, { -0.125f, -0.25f },
+        { -0.125f, -0.25f }, { -0.125f, -0.375f }, { -0.125f, 0.5f }, { -0.125f, 0.5f }, { -0.125f, 0.25f },
+        { -0.125f, 0.5f }, { 0.125f, 0.5f }, { 0.125f, 0.5f }, { 0.125f, 0.5f }, { 0.0f, 0.5f },
+        { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.125f }, { 0.0f, 1.125f }, { 0.0f, 1.125f }
+    };
+
+    auto& offsets = name == GJDifficultyName::Long ? longOffsets : shortOffsets;
+    return difficulty < offsets.size() ? offsets[difficulty] : offsets[0];
 }
 
 int FakeRate::getGRDOverride(CCSprite* sprite) {
@@ -113,9 +97,7 @@ int FakeRate::getGRDOverride(CCSprite* sprite) {
     auto pos = sprName.find("GrD_demon");
     if (pos == std::string::npos || pos + 9 >= sprName.size()) return 0;
 
-    auto ret = 0;
-    std::from_chars(sprName.data() + (pos + 9), sprName.data() + sprName.size(), ret);
-    return ret;
+    return jasmine::convert::getInt<int>(std::move(sprName).substr(9)).value_or(0);
 }
 
 int FakeRate::getDIBOverride(CCSprite* sprite) {
@@ -124,21 +106,19 @@ int FakeRate::getDIBOverride(CCSprite* sprite) {
     auto pos = sprName.find("DIB_");
     if (pos == std::string::npos || pos + 4 >= sprName.size()) return 0;
 
-    auto ret = 0;
-    std::from_chars(sprName.data() + (pos + 4), sprName.data() + sprName.size(), ret);
-    return ret;
+    return jasmine::convert::getInt<int>(std::move(sprName).substr(4)).value_or(0);
 }
 
 int FakeRate::getGDDPOverride(CCSprite* sprite) {
     auto sprName = getSpriteName(sprite);
-    if (sprName.ends_with("Text.png")) sprName = sprName.substr(0, sprName.size() - 8);
-    if (sprName.ends_with("Small")) sprName = sprName.substr(0, sprName.size() - 5);
-    if (sprName.ends_with("Plus")) sprName = sprName.substr(0, sprName.size() - 4);
+    if (sprName.ends_with("Text.png")) sprName = std::move(sprName).substr(0, sprName.size() - 8);
+    if (sprName.ends_with("Small")) sprName = std::move(sprName).substr(0, sprName.size() - 5);
+    if (sprName.ends_with("Plus")) sprName = std::move(sprName).substr(0, sprName.size() - 4);
 
     auto pos = sprName.find("DP_");
     if (pos == std::string::npos || pos + 3 >= sprName.size()) return 0;
 
-    auto it = gddpIndices.find(sprName.substr(pos + 3));
+    auto it = gddpIndices.find(std::move(sprName).substr(pos + 3));
     return it != gddpIndices.end() ? it->second : 0;
 }
 
@@ -155,15 +135,15 @@ std::string FakeRate::getGDDPFrame(int difficulty, GJDifficultyName name) {
 Result<FakeRateSaveData> matjson::Serialize<FakeRateSaveData>::fromJson(const matjson::Value& value) {
     if (!value.isObject()) return Err("Expected object");
     FakeRateSaveData data;
-    if (auto id = value.get<int>("id").ok()) data.id = *id;
-    if (auto stars = value.get<int>("stars").ok()) data.stars = *stars;
-    if (auto feature = value.get<int>("feature").ok()) data.feature = *feature;
-    if (auto difficulty = value.get<int>("difficulty").ok()) data.difficulty = *difficulty;
-    if (auto mdo = value.get<int>("more-difficulties-override").ok()) data.moreDifficultiesOverride = *mdo;
-    if (auto gdo = value.get<int>("grandpa-demon-override").ok()) data.grandpaDemonOverride = *gdo;
-    if (auto dbo = value.get<int>("demons-in-between-override").ok()) data.demonsInBetweenOverride = *dbo;
-    if (auto gio = value.get<int>("gddp-integration-override").ok()) data.gddpIntegrationOverride = *gio;
-    if (auto coins = value.get<bool>("coins").ok()) data.coins = *coins;
+    if (auto id = value.get<int>("id")) data.id = id.unwrap();
+    if (auto stars = value.get<int>("stars")) data.stars = stars.unwrap();
+    if (auto feature = value.get<int>("feature")) data.feature = feature.unwrap();
+    if (auto difficulty = value.get<int>("difficulty")) data.difficulty = difficulty.unwrap();
+    if (auto mdo = value.get<int>("more-difficulties-override")) data.moreDifficultiesOverride = mdo.unwrap();
+    if (auto gdo = value.get<int>("grandpa-demon-override")) data.grandpaDemonOverride = gdo.unwrap();
+    if (auto dbo = value.get<int>("demons-in-between-override")) data.demonsInBetweenOverride = dbo.unwrap();
+    if (auto gio = value.get<int>("gddp-integration-override")) data.gddpIntegrationOverride = gio.unwrap();
+    if (auto coins = value.get<bool>("coins")) data.coins = coins.unwrap();
     return Ok(data);
 }
 

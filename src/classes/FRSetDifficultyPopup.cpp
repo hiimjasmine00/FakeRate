@@ -2,11 +2,12 @@
 #include "FRDIBPopup.hpp"
 #include "FRGDDPPopup.hpp"
 #include "FRGRDPopup.hpp"
-#include "TableNode.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <jasmine/nodes.hpp>
 
 using namespace geode::prelude;
+using namespace jasmine::nodes;
 
 FRSetDifficultyPopup* FRSetDifficultyPopup::create(const FakeRateSaveData& data, bool legacy, SetDifficultyCallback callback) {
     auto ret = new FRSetDifficultyPopup();
@@ -37,18 +38,15 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
     auto casual = false;
     auto tough = false;
     auto cruel = false;
-    if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties")) {
+    auto loader = Loader::get();
+    auto moreDifficulties = loader->getLoadedMod("uproxide.more_difficulties");
+    if (moreDifficulties) {
         casual = moreDifficulties->getSavedValue("casual", true);
         tough = moreDifficulties->getSavedValue("tough", true);
         cruel = moreDifficulties->getSavedValue("cruel", true);
     }
 
-    auto table = TableNode::create(Loader::get()->isModLoaded("uproxide.more_difficulties") && (casual || tough || cruel) ? 5 : 4, 3);
-    table->setColumnLayout(ColumnLayout::create()->setAxisReverse(true));
-    table->setRowLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Even));
-    table->setRowHeight(63.0f);
-    table->setRowPrefix("difficulty-button-row");
-    table->setContentSize({ 300.0f, 170.0f });
+    auto table = TableNode::create(moreDifficulties && (casual || tough || cruel) ? 5 : 4, 3, 300.0f, 170.0f, "difficulty-button-row");
     table->setPosition({ 150.0f, 130.0f });
     table->setID("difficulty-buttons");
     m_mainLayer->addChild(table);
@@ -57,7 +55,7 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
     for (auto [d, mdo] : difficulties) {
         auto num = d == -1 ? "auto" : fmt::format("{:02d}", d);
         auto frameName = d > 5 ? fmt::format("difficulty_{}_btn2_001.png", num) : fmt::format("difficulty_{}_btn_001.png", num);
-        if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties"); moreDifficulties && mdo > 0) {
+        if (moreDifficulties && mdo > 0) {
             if (mdo == 4 && !casual) continue;
             if (mdo == 7 && !tough) continue;
             if (mdo == 9 && !cruel) continue;
@@ -99,7 +97,7 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
     overrideMenu->setID("override-menu");
     m_mainLayer->addChild(overrideMenu);
 
-    if (Loader::get()->isModLoaded("itzkiba.grandpa_demon")) {
+    if (loader->isModLoaded("itzkiba.grandpa_demon")) {
         auto grdButton = CCMenuItemExt::createSpriteExtraWithFilename("FR_grdBtn_001.png"_spr, 0.65f, [this](auto) {
             FRGRDPopup::create(m_grandpaDemonOverride, [this](int grd) {
                 m_grandpaDemonOverride = grd;
@@ -111,7 +109,7 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
         overrideMenu->addChild(grdButton);
     }
 
-    if (auto demonsInBetween = Loader::get()->getLoadedMod("hiimjustin000.demons_in_between");
+    if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between");
         demonsInBetween && demonsInBetween->getSettingValue<bool>("enable-difficulties")) {
         auto dibButton = CCMenuItemExt::createSpriteExtraWithFilename("FR_dibBtn_001.png"_spr, 0.75f, [this](auto) {
             FRDIBPopup::create(m_demonsInBetweenOverride, [this](int dib) {
@@ -124,7 +122,7 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
         overrideMenu->addChild(dibButton);
     }
 
-    if (auto gddpIntegration = Loader::get()->getLoadedMod("minemaker0430.gddp_integration");
+    if (auto gddpIntegration = loader->getLoadedMod("minemaker0430.gddp_integration");
         gddpIntegration && gddpIntegration->getSettingValue<bool>("custom-difficulty-faces")) {
         auto gddpButton = CCMenuItemExt::createSpriteExtraWithFilename("FR_gddpBtn_001.png"_spr, 0.65f, [this](auto) {
             FRGDDPPopup::create(m_gddpIntegrationOverride, [this](int gddp) {

@@ -45,7 +45,8 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
     m_difficultySprite->setID("difficulty-sprite");
     m_mainLayer->addChild(m_difficultySprite);
 
-    if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties")) {
+    auto loader = Loader::get();
+    if (auto moreDifficulties = loader->getLoadedMod("uproxide.more_difficulties")) {
         m_legacy = moreDifficulties->getSettingValue<bool>("legacy-difficulties");
         m_mdSprite = CCSprite::createWithSpriteFrameName(m_legacy ?
             "uproxide.more_difficulties/MD_Difficulty04_Legacy.png" : "uproxide.more_difficulties/MD_Difficulty04.png");
@@ -54,7 +55,7 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
         m_mdSprite->setID("md-sprite");
         m_mainLayer->addChild(m_mdSprite);
     }
-    if (Loader::get()->isModLoaded("itzkiba.grandpa_demon")) {
+    if (loader->isModLoaded("itzkiba.grandpa_demon")) {
         m_grdSprite = CCSprite::createWithSpriteFrameName("itzkiba.grandpa_demon/GrD_demon0_text.png");
         m_grdSprite->setPosition({ 60.0f, 105.0f });
         m_grdSprite->setVisible(false);
@@ -67,14 +68,14 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
         m_grdInfinity->setID("grd-infinity-sprite");
         m_mainLayer->addChild(m_grdInfinity);
     }
-    if (Loader::get()->isModLoaded("hiimjustin000.demons_in_between")) {
+    if (loader->isModLoaded("hiimjustin000.demons_in_between")) {
         m_dibSprite = CCSprite::createWithSpriteFrameName("hiimjustin000.demons_in_between/DIB_01_btn2_001.png");
         m_dibSprite->setPosition({ 60.0f, 105.0f });
         m_dibSprite->setVisible(false);
         m_dibSprite->setID("dib-sprite");
         m_mainLayer->addChild(m_dibSprite);
     }
-    if (Loader::get()->isModLoaded("minemaker0430.gddp_integration")) {
+    if (loader->isModLoaded("minemaker0430.gddp_integration")) {
         m_gddpSprite = CCSprite::createWithSpriteFrameName("minemaker0430.gddp_integration/DP_BeginnerText.png");
         m_gddpSprite->setPosition({ 60.25f, 140.0f });
         m_gddpSprite->setAnchorPoint({ 0.5f, 1.0f });
@@ -83,7 +84,7 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
         m_mainLayer->addChild(m_gddpSprite);
     }
 
-    m_starSprite = CCSprite::createWithSpriteFrameName(m_level->m_levelLength == 5 ? "moon_small01_001.png" : "star_small01_001.png");
+    m_starSprite = CCSprite::createWithSpriteFrameName(m_level->isPlatformer() ? "moon_small01_001.png" : "star_small01_001.png");
     m_starSprite->setID("star-sprite");
     m_mainLayer->addChild(m_starSprite);
 
@@ -130,9 +131,9 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
     difficultyButton->setID("difficulty-button");
     m_buttonMenu->addChild(difficultyButton);
 
-    auto starsButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create(m_level->m_levelLength == 5 ? "Moons" : "Stars",
+    auto starsButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create(m_level->isPlatformer() ? "Moons" : "Stars",
         "goldFont.fnt", "GJ_button_02.png", 0.8f), [this](auto) {
-        FRSetStarsPopup::create(m_stars, m_level->m_levelLength == 5, [this](int stars) {
+        FRSetStarsPopup::create(m_stars, m_level->isPlatformer(), [this](int stars) {
             m_stars = stars;
             updateLabels();
         })->show();
@@ -176,23 +177,22 @@ bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, Update
     auto addButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Add", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this](auto) {
         auto levelID = m_level->m_levelID.value();
         auto it = std::ranges::find(FakeRate::fakeRates, levelID, &FakeRateSaveData::id);
-        if (it != FakeRate::fakeRates.end()) {
-            it->stars = m_stars;
-            it->feature = m_feature;
-            it->difficulty = m_difficulty;
-            it->moreDifficultiesOverride = m_moreDifficultiesOverride;
-            it->grandpaDemonOverride = m_grandpaDemonOverride;
-            it->demonsInBetweenOverride = m_demonsInBetweenOverride;
-            it->gddpIntegrationOverride = m_gddpIntegrationOverride;
-            it->coins = m_coins;
+        if (auto data = FakeRate::getFakeRate(m_level)) {
+            data->stars = m_stars;
+            data->feature = m_feature;
+            data->difficulty = m_difficulty;
+            data->moreDifficultiesOverride = m_moreDifficultiesOverride;
+            data->grandpaDemonOverride = m_grandpaDemonOverride;
+            data->demonsInBetweenOverride = m_demonsInBetweenOverride;
+            data->gddpIntegrationOverride = m_gddpIntegrationOverride;
+            data->coins = m_coins;
+            m_callback(*data, false);
         }
         else {
-            FakeRate::fakeRates.emplace_back(levelID, m_stars, m_feature, m_difficulty,
-                m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride, m_coins);
-            it = FakeRate::fakeRates.end() - 1;
+            m_callback(FakeRate::fakeRates.emplace_back(m_level->m_levelID.value(), m_stars, m_feature, m_difficulty,
+                m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride, m_coins), false);
         }
 
-        m_callback(*it, false);
         onClose(nullptr);
     });
     addButton->setPosition({ 150.0f, 30.0f });
@@ -255,7 +255,8 @@ void FREditPopup::updateLabels() {
     }
     m_difficultySprite->setOpacity(255);
     auto sfc = CCSpriteFrameCache::get();
-    if (auto moreDifficulties = Loader::get()->getLoadedMod("uproxide.more_difficulties")) {
+    auto loader = Loader::get();
+    if (auto moreDifficulties = loader->getLoadedMod("uproxide.more_difficulties")) {
         if (m_moreDifficultiesOverride == 4 && !moreDifficulties->getSavedValue("casual", true)) m_moreDifficultiesOverride = 0;
         if (m_moreDifficultiesOverride == 7 && !moreDifficulties->getSavedValue("tough", true)) m_moreDifficultiesOverride = 0;
         if (m_moreDifficultiesOverride == 9 && !moreDifficulties->getSavedValue("cruel", true)) m_moreDifficultiesOverride = 0;
@@ -268,7 +269,7 @@ void FREditPopup::updateLabels() {
         }
         else m_mdSprite->setVisible(false);
     }
-    if (Loader::get()->isModLoaded("itzkiba.grandpa_demon")) {
+    if (loader->isModLoaded("itzkiba.grandpa_demon")) {
         if (m_grandpaDemonOverride > 0 && m_grandpaDemonOverride < 7) {
             m_grdSprite->setDisplayFrame(sfc->spriteFrameByName(
                 fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", m_grandpaDemonOverride - 1).c_str()));
@@ -282,10 +283,9 @@ void FREditPopup::updateLabels() {
 
         m_grdInfinity->setVisible(m_grandpaDemonOverride == 5);
     }
-    if (auto demonsInBetween = Loader::get()->getLoadedMod("hiimjustin000.demons_in_between")) {
+    if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between")) {
         if (!demonsInBetween->getSettingValue<bool>("enable-difficulties")) m_demonsInBetweenOverride = 0;
         if (m_demonsInBetweenOverride > 0 && m_demonsInBetweenOverride < 21) {
-            auto demonsInBetween = Loader::get()->getLoadedMod("hiimjustin000.demons_in_between");
             auto dibFeature = "";
             if (m_feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
             else if (m_feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
@@ -298,7 +298,7 @@ void FREditPopup::updateLabels() {
         }
         else m_dibSprite->setVisible(false);
     }
-    if (auto gddpIntegration = Loader::get()->getLoadedMod("minemaker0430.gddp_integration")) {
+    if (auto gddpIntegration = loader->getLoadedMod("minemaker0430.gddp_integration")) {
         if (!gddpIntegration->getSettingValue<bool>("custom-difficulty-faces")) m_gddpIntegrationOverride = 0;
         if (m_gddpIntegrationOverride > 0 && m_gddpIntegrationOverride < 17) {
             m_gddpSprite->setDisplayFrame(sfc->spriteFrameByName(

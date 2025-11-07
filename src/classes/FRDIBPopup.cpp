@@ -1,9 +1,10 @@
 #include "FRDIBPopup.hpp"
-#include "TableNode.hpp"
 #include "../FakeRate.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
+#include <jasmine/nodes.hpp>
 
 using namespace geode::prelude;
+using namespace jasmine::nodes;
 
 FRDIBPopup* FRDIBPopup::create(int demonsInBetweenOverride, SetDIBCallback callback) {
     auto ret = new FRDIBPopup();
@@ -26,12 +27,7 @@ bool FRDIBPopup::setup(int demonsInBetweenOverride, SetDIBCallback callback) {
     m_noElasticity = true;
     m_demonsInBetweenOverride = demonsInBetweenOverride;
 
-    auto table = TableNode::create(5, 4);
-    table->setColumnLayout(ColumnLayout::create()->setAxisReverse(true));
-    table->setRowLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Even));
-    table->setRowHeight(60.0f);
-    table->setRowPrefix("dib-button-row");
-    table->setContentSize({ 350.0f, 240.0f });
+    auto table = TableNode::create(5, 4, 350.0f, 240.0f, "dib-button-row");
     table->setPosition({ 175.0f, 160.0f });
     table->setID("dib-buttons");
     m_mainLayer->addChild(table);

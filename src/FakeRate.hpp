@@ -20,7 +20,7 @@ class FakeRate {
 public:
     static std::vector<FakeRateSaveData> fakeRates;
 
-    static int getBaseCurrency(int);
+    static FakeRateSaveData* getFakeRate(GJGameLevel*);
     static int getDifficultyFromLevel(GJGameLevel*);
     static std::string getSpriteName(cocos2d::CCSprite*);
     static void toggle(cocos2d::CCNode*, bool);

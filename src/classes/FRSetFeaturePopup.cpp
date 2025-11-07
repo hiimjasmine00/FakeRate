@@ -44,7 +44,8 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
         auto feature = (GJFeatureState)i;
         auto difficultySprite = GJDifficultySprite::create(m_difficulty, GJDifficultyName::Long);
         difficultySprite->updateFeatureState(feature);
-        if (Loader::get()->isModLoaded("uproxide.more_difficulties") && m_moreDifficultiesOverride > 0
+        auto loader = Loader::get();
+        if (loader->isModLoaded("uproxide.more_difficulties") && m_moreDifficultiesOverride > 0
             && m_grandpaDemonOverride == 0 && m_demonsInBetweenOverride == 0 && m_gddpIntegrationOverride == 0) {
             auto mdSprite = CCSprite::createWithSpriteFrameName((m_legacy ?
                 fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}_Legacy.png", m_moreDifficultiesOverride)
@@ -53,15 +54,14 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
             difficultySprite->setOpacity(0);
             difficultySprite->addChild(mdSprite);
         }
-        if (Loader::get()->isModLoaded("itzkiba.grandpa_demon") && m_grandpaDemonOverride > 0) {
+        if (loader->isModLoaded("itzkiba.grandpa_demon") && m_grandpaDemonOverride > 0) {
             auto grdSprite = CCSprite::createWithSpriteFrameName(
                 fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", m_grandpaDemonOverride - 1).c_str());
             grdSprite->setPosition(difficultySprite->getContentSize() / 2);
             difficultySprite->setOpacity(0);
             difficultySprite->addChild(grdSprite);
         }
-        if (Loader::get()->isModLoaded("hiimjustin000.demons_in_between") && m_demonsInBetweenOverride > 0) {
-            auto demonsInBetween = Loader::get()->getLoadedMod("hiimjustin000.demons_in_between");
+        if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && m_demonsInBetweenOverride > 0) {
             auto dibFeature = "";
             if (i == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
             else if (i == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
@@ -72,7 +72,7 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
             difficultySprite->setOpacity(0);
             difficultySprite->addChild(dibSprite);
         }
-        if (Loader::get()->isModLoaded("minemaker0430.gddp_integration") && m_gddpIntegrationOverride > 0) {
+        if (loader->isModLoaded("minemaker0430.gddp_integration") && m_gddpIntegrationOverride > 0) {
             auto gddpSprite = CCSprite::createWithSpriteFrameName(FakeRate::getGDDPFrame(m_gddpIntegrationOverride, GJDifficultyName::Long).c_str());
             gddpSprite->setAnchorPoint({ 0.5f, 1.0f });
             gddpSprite->setPosition(difficultySprite->getContentSize() / 2 + CCPoint { 0.25f, 30.0f });

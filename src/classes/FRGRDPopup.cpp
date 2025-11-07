@@ -1,9 +1,10 @@
 #include "FRGRDPopup.hpp"
-#include "TableNode.hpp"
 #include "../FakeRate.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
+#include <jasmine/nodes.hpp>
 
 using namespace geode::prelude;
+using namespace jasmine::nodes;
 
 FRGRDPopup* FRGRDPopup::create(int grandpaDemonOverride, SetGRDCallback callback) {
     auto ret = new FRGRDPopup();
@@ -26,11 +27,7 @@ bool FRGRDPopup::setup(int grandpaDemonOverride, SetGRDCallback callback) {
     m_noElasticity = true;
     m_grandpaDemonOverride = grandpaDemonOverride;
 
-    auto table = TableNode::create(3, 2);
-    table->setColumnLayout(ColumnLayout::create()->setAxisReverse(true));
-    table->setRowLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Even));
-    table->setRowHeight(65.0f);
-    table->setRowPrefix("grd-button-row");
+    auto table = TableNode::create(3, 2, 250.0f, 130.0f, "grd-button-row");
     table->setContentSize({ 250.0f, 130.0f });
     table->setPosition({ 125.0f, 107.5f });
     table->setID("grd-buttons");

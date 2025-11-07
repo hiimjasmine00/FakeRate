@@ -1,5 +1,6 @@
 #include "FRSetStarsPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
+#include <jasmine/convert.hpp>
 
 using namespace geode::prelude;
 
@@ -31,7 +32,7 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
     m_input->setString(fmt::to_string(m_stars));
     m_input->setMaxCharCount(11);
     m_input->setCallback([this](const std::string& text) {
-        if (auto res = std::from_chars(text.data(), text.data() + text.size(), m_stars); res.ec == std::errc()) {
+        if (jasmine::convert::toInt(text, m_stars)) {
             m_label->setString(fmt::to_string(m_stars).c_str());
             m_starLayout->updateLayout();
         }
