@@ -431,9 +431,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
 static_assert(GEODE_COMP_GD_VERSION == 22074, "Please update this hook for the current GD version");
 
 uintptr_t likedItemAddress = base::get() + GEODE_ARM_MAC(0x256f58) GEODE_INTEL_MAC(0x2b1040);
-void likedItemHook(void* self, LikeItemType type, int id, bool liked) {
-    reinterpret_cast<void(*)(void*, LikeItemType, int, bool)>(likedItemAddress)(self, type, id, liked);
-    reinterpret_cast<FRLevelInfoLayer*>((reinterpret_cast<uintptr_t>(self) - 0x1b0))->checkFakeRate();
+void likedItemHook(LikeItemDelegate* self, LikeItemType type, int id, bool liked) {
+    reinterpret_cast<void(*)(LikeItemDelegate*, LikeItemType, int, bool)>(likedItemAddress)(self, type, id, liked);
+    base_cast<FRLevelInfoLayer*>(self)->checkFakeRate();
 }
 
 $execute {
