@@ -40,7 +40,7 @@ FakeRateSaveData* FakeRate::getFakeRate(GJGameLevel* level) {
 }
 
 int FakeRate::getDifficultyFromLevel(GJGameLevel* level) {
-    if (level->m_demon > 0) return level->demonIconForDifficulty((DemonDifficultyType)level->m_demonDifficulty);
+    if (level->m_demon > 0) return GJGameLevel::demonIconForDifficulty((DemonDifficultyType)level->m_demonDifficulty);
     else if (level->m_autoLevel) return -1;
     else return level->getAverageDifficulty();
 }
