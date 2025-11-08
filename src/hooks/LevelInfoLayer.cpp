@@ -445,7 +445,7 @@ $execute {
     );
     hook->setPriority(-100);
     if (auto res = Mod::get()->claimHook(hook); res.isErr()) {
-        log::error("Failed to hook LevelInfoLayer::LikeItemDelegate::likedItem: {}", std::move(res).unwrapErr());
+        log::error("Failed to hook LevelInfoLayer::LikeItemDelegate::likedItem: {}", res.unwrapErr());
     }
 };
 #endif
