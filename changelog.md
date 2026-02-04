@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.17 (2026-02-04)
+- Ported to Geometry Dash v2.208 / Geode SDK v5.0.0
+
 ## v1.4.16 (2025-10-23)
 - Added support for the new "Pearl Demon" difficulty from GDDP Integration
 
