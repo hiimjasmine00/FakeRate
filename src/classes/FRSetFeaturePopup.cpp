@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 FRSetFeaturePopup* FRSetFeaturePopup::create(const FakeRateSaveData& data, bool legacy, SetFeatureCallback callback) {
     auto ret = new FRSetFeaturePopup();
-    if (ret->initAnchored(300.0f, 150.0f, data, legacy, std::move(callback))) {
+    if (ret->init(data, legacy, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -15,7 +15,9 @@ FRSetFeaturePopup* FRSetFeaturePopup::create(const FakeRateSaveData& data, bool 
     return nullptr;
 }
 
-bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeatureCallback callback) {
+bool FRSetFeaturePopup::init(const FakeRateSaveData& data, bool legacy, SetFeatureCallback callback) {
+    if (!Popup::init(300.0f, 150.0f)) return false;
+
     setID("FRSetFeaturePopup");
     setTitle("Select Feature");
     m_title->setID("select-feature-title");
@@ -99,7 +101,9 @@ bool FRSetFeaturePopup::setup(const FakeRateSaveData& data, bool legacy, SetFeat
 
     menuRow->updateLayout();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
+        this, callback = std::move(callback)
+    ](auto) mutable {
         callback((int)m_feature);
         onClose(nullptr);
     });

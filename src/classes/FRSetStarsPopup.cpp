@@ -6,7 +6,7 @@ using namespace geode::prelude;
 
 FRSetStarsPopup* FRSetStarsPopup::create(int stars, bool platformer, SetStarsCallback callback) {
     auto ret = new FRSetStarsPopup();
-    if (ret->initAnchored(250.0f, 150.0f, stars, platformer, std::move(callback))) {
+    if (ret->init(stars, platformer, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -14,7 +14,9 @@ FRSetStarsPopup* FRSetStarsPopup::create(int stars, bool platformer, SetStarsCal
     return nullptr;
 }
 
-bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callback) {
+bool FRSetStarsPopup::init(int stars, bool platformer, SetStarsCallback callback) {
+    if (!Popup::init(250.0f, 150.0f)) return false;
+
     setID("FRSetStarsPopup");
     setTitle(platformer ? "Set Moons" : "Set Stars");
     m_title->setID("set-stars-title");
@@ -32,7 +34,7 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
     m_input->setString(fmt::to_string(m_stars));
     m_input->setMaxCharCount(11);
     m_input->setCallback([this](const std::string& text) {
-        if (jasmine::convert::toInt(text, m_stars)) {
+        if (jasmine::convert::to(text, m_stars)) {
             m_label->setString(fmt::to_string(m_stars).c_str());
             m_starLayout->updateLayout();
         }
@@ -81,7 +83,9 @@ bool FRSetStarsPopup::setup(int stars, bool platformer, SetStarsCallback callbac
     rightButton->setID("right-button");
     m_buttonMenu->addChild(rightButton);
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
+        this, callback = std::move(callback)
+    ](auto) mutable {
         callback(m_stars);
         onClose(nullptr);
     });

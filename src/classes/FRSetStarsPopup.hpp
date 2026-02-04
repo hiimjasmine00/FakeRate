@@ -1,16 +1,16 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
 
-typedef std::function<void(int)> SetStarsCallback;
+typedef geode::Function<void(int)> SetStarsCallback;
 
-class FRSetStarsPopup : public geode::Popup<int, bool, SetStarsCallback> {
+class FRSetStarsPopup : public geode::Popup {
 protected:
     int m_stars;
     geode::TextInput* m_input;
     cocos2d::CCLabelBMFont* m_label;
-    CCNode* m_starLayout;
+    cocos2d::CCNode* m_starLayout;
 
-    bool setup(int, bool, SetStarsCallback) override;
+    bool init(int, bool, SetStarsCallback);
 public:
     static FRSetStarsPopup* create(int, bool, SetStarsCallback);
 };

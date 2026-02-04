@@ -1,13 +1,13 @@
 #include <Geode/ui/Popup.hpp>
 
-typedef std::function<void(int)> SetDIBCallback;
+typedef geode::Function<void(int)> SetDIBCallback;
 
-class FRDIBPopup : public geode::Popup<int, SetDIBCallback> {
+class FRDIBPopup : public geode::Popup {
 protected:
     int m_demonsInBetweenOverride;
     CCMenuItemSpriteExtra* m_selected;
 
-    bool setup(int, SetDIBCallback) override;
+    bool init(int, SetDIBCallback);
 public:
     static FRDIBPopup* create(int, SetDIBCallback);
 };

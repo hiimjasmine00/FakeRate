@@ -10,7 +10,7 @@ using namespace geode::prelude;
 
 class $modify(FRLevelCell, LevelCell) {
     static void onModify(ModifyBase<ModifyDerive<FRLevelCell, LevelCell>>& self) {
-        (void)self.setHookPriority("LevelCell::loadFromLevel", -100);
+        (void)self.setHookPriority("LevelCell::loadFromLevel", Priority::Early);
     }
 
     void loadFromLevel(GJGameLevel* level) {

@@ -1,12 +1,12 @@
 {
-    "geode": "4.9.0",
+    "geode": "5.0.0-alpha.1",
     "gd": {
-        "android": "2.2074",
-        "win": "2.2074",
-        "mac": "2.2074",
-        "ios": "2.2074"
+        "android": "2.2081",
+        "win": "2.2081",
+        "mac": "2.2081",
+        "ios": "2.2081"
     },
-    "version": "v1.4.16",
+    "version": "v1.4.17-beta.1",
     "id": "hiimjustin000.fake_rate",
     "name": "Fake Rate",
     "developer": "hiimjasmine00",

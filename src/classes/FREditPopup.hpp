@@ -1,9 +1,9 @@
 #include "../FakeRate.hpp"
 #include <Geode/ui/Popup.hpp>
 
-typedef std::function<void(const FakeRateSaveData&, bool)> UpdateFakeRateCallback;
+typedef geode::Function<void(const FakeRateSaveData&, bool)> UpdateFakeRateCallback;
 
-class FREditPopup : public geode::Popup<GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback> {
+class FREditPopup : public geode::Popup {
 protected:
     GJGameLevel* m_level;
     int m_stars;
@@ -26,7 +26,7 @@ protected:
     geode::Ref<cocos2d::CCArray> m_coinSprites;
     UpdateFakeRateCallback m_callback;
 
-    bool setup(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback) override;
+    bool init(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback);
     void updateLabels();
 public:
     static FREditPopup* create(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback);

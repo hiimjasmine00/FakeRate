@@ -8,7 +8,7 @@ using namespace jasmine::nodes;
 
 FRGDDPPopup* FRGDDPPopup::create(int gddpIntegrationOverride, SetGDDPCallback callback) {
     auto ret = new FRGDDPPopup();
-    if (ret->initAnchored(250.0f, 250.0f, gddpIntegrationOverride, std::move(callback))) {
+    if (ret->init(gddpIntegrationOverride, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -16,7 +16,9 @@ FRGDDPPopup* FRGDDPPopup::create(int gddpIntegrationOverride, SetGDDPCallback ca
     return nullptr;
 }
 
-bool FRGDDPPopup::setup(int gddpIntegrationOverride, SetGDDPCallback callback) {
+bool FRGDDPPopup::init(int gddpIntegrationOverride, SetGDDPCallback callback) {
+    if (!Popup::init(250.0f, 250.0f)) return false;
+
     setID("FRGDDPPopup");
     setTitle("GDDP Integration");
     m_title->setID("gddp-integration-title");
@@ -49,7 +51,9 @@ bool FRGDDPPopup::setup(int gddpIntegrationOverride, SetGDDPCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
+        this, callback = std::move(callback)
+    ](auto) mutable {
         callback(m_gddpIntegrationOverride);
         onClose(nullptr);
     });

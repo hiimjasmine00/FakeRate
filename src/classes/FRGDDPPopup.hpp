@@ -1,13 +1,13 @@
 #include <Geode/ui/Popup.hpp>
 
-typedef std::function<void(int)> SetGDDPCallback;
+typedef geode::Function<void(int)> SetGDDPCallback;
 
-class FRGDDPPopup : public geode::Popup<int, SetGDDPCallback> {
+class FRGDDPPopup : public geode::Popup {
 protected:
     int m_gddpIntegrationOverride;
     CCMenuItemSpriteExtra* m_selected;
 
-    bool setup(int, SetGDDPCallback) override;
+    bool init(int, SetGDDPCallback);
 public:
     static FRGDDPPopup* create(int, SetGDDPCallback);
 };

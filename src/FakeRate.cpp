@@ -97,7 +97,7 @@ int FakeRate::getGRDOverride(CCSprite* sprite) {
     auto pos = sprName.find("GrD_demon");
     if (pos == std::string::npos || pos + 9 >= sprName.size()) return 0;
 
-    return jasmine::convert::getInt<int>(std::move(sprName).substr(9)).value_or(0);
+    return jasmine::convert::get<int>(std::move(sprName).substr(9)).value_or(0);
 }
 
 int FakeRate::getDIBOverride(CCSprite* sprite) {
@@ -106,7 +106,7 @@ int FakeRate::getDIBOverride(CCSprite* sprite) {
     auto pos = sprName.find("DIB_");
     if (pos == std::string::npos || pos + 4 >= sprName.size()) return 0;
 
-    return jasmine::convert::getInt<int>(std::move(sprName).substr(4)).value_or(0);
+    return jasmine::convert::get<int>(std::move(sprName).substr(4)).value_or(0);
 }
 
 int FakeRate::getGDDPOverride(CCSprite* sprite) {

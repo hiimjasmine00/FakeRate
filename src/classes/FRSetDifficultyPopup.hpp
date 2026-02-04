@@ -1,9 +1,9 @@
 #include "../FakeRate.hpp"
 #include <Geode/ui/Popup.hpp>
 
-typedef std::function<void(int, int, int, int, int)> SetDifficultyCallback;
+typedef geode::Function<void(int, int, int, int, int)> SetDifficultyCallback;
 
-class FRSetDifficultyPopup : public geode::Popup<const FakeRateSaveData&, bool, SetDifficultyCallback> {
+class FRSetDifficultyPopup : public geode::Popup {
 protected:
     static constexpr std::array<std::pair<int, int>, 15> difficulties = {
         std::make_pair(0, 0), std::make_pair(-1, 0), std::make_pair(1, 0), std::make_pair(2, 0), std::make_pair(3, 4),
@@ -19,7 +19,7 @@ protected:
     bool m_legacy;
     CCMenuItemSpriteExtra* m_selected;
 
-    bool setup(const FakeRateSaveData&, bool, SetDifficultyCallback) override;
+    bool init(const FakeRateSaveData&, bool, SetDifficultyCallback);
 public:
     static FRSetDifficultyPopup* create(const FakeRateSaveData&, bool, SetDifficultyCallback);
 };

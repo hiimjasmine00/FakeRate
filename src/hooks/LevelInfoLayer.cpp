@@ -5,6 +5,7 @@
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
 
@@ -24,9 +25,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
     };
 
     static void onModify(ModifyBase<ModifyDerive<FRLevelInfoLayer, LevelInfoLayer>>& self) {
-        (void)self.setHookPriority("LevelInfoLayer::init", -100);
-        (void)self.setHookPriority("LevelInfoLayer::levelDownloadFinished", -100);
-        (void)self.setHookPriority("LevelInfoLayer::likedItem", -100);
+        (void)self.setHookPriority("LevelInfoLayer::init", Priority::Early);
+        (void)self.setHookPriority("LevelInfoLayer::levelDownloadFinished", Priority::Early);
+        (void)self.setHookPriority("LevelInfoLayer::likedItem", Priority::Early);
     }
 
     bool init(GJGameLevel* level, bool challenge) {
@@ -153,7 +154,7 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             if (animatedFire) removeChildByTag(69420);
             auto hasDemon = false;
             for (auto child : CCArrayExt<CCNode*>(getChildren())) {
-                auto& childID = child->getID();
+                auto childID = child->getID();
                 if (childID == "grd-difficulty") {
                     child->setVisible(remove);
                     hasDemon = true;
@@ -428,24 +429,17 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
 };
 
 #ifdef GEODE_IS_MACOS // Stupid likedItem inline expansion hook
-static_assert(GEODE_COMP_GD_VERSION == 22074, "Please update this hook for the current GD version");
+static_assert(GEODE_COMP_GD_VERSION == 22081, "Please update this hook for the current GD version");
 
-uintptr_t likedItemAddress = base::get() + GEODE_ARM_MAC(0x256f58) GEODE_INTEL_MAC(0x2b1040);
+uintptr_t likedItemAddress = base::get() + GEODE_ARM_MAC(0x260ed0) GEODE_INTEL_MAC(0x2c4be0);
 void likedItemHook(LikeItemDelegate* self, LikeItemType type, int id, bool liked) {
     reinterpret_cast<void(*)(LikeItemDelegate*, LikeItemType, int, bool)>(likedItemAddress)(self, type, id, liked);
     base_cast<FRLevelInfoLayer*>(self)->checkFakeRate();
 }
 
 $execute {
-    auto hook = Hook::create(
-        reinterpret_cast<void*>(likedItemAddress),
-        &likedItemHook,
-        "LevelInfoLayer::LikeItemDelegate::likedItem",
-        tulip::hook::TulipConvention::Default
-    );
-    hook->setPriority(-100);
-    if (auto res = Mod::get()->claimHook(hook); res.isErr()) {
-        log::error("Failed to hook LevelInfoLayer::LikeItemDelegate::likedItem: {}", res.unwrapErr());
-    }
+    jasmine::hook::create(likedItemAddress, "LevelInfoLayer::LikeItemDelegate::likedItem", &likedItemHook, [](Hook* hook) {
+        hook->setPriority(Priority::Early);
+    });
 };
 #endif

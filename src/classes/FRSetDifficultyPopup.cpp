@@ -11,7 +11,7 @@ using namespace jasmine::nodes;
 
 FRSetDifficultyPopup* FRSetDifficultyPopup::create(const FakeRateSaveData& data, bool legacy, SetDifficultyCallback callback) {
     auto ret = new FRSetDifficultyPopup();
-    if (ret->initAnchored(300.0f, 250.0f, data, legacy, std::move(callback))) {
+    if (ret->init(data, legacy, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -19,7 +19,9 @@ FRSetDifficultyPopup* FRSetDifficultyPopup::create(const FakeRateSaveData& data,
     return nullptr;
 }
 
-bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetDifficultyCallback callback) {
+bool FRSetDifficultyPopup::init(const FakeRateSaveData& data, bool legacy, SetDifficultyCallback callback) {
+    if (!Popup::init(300.0f, 250.0f)) return false;
+
     setID("FRSetDifficultyPopup");
     setTitle("Select Difficulty");
     m_title->setID("select-difficulty-title");
@@ -82,7 +84,9 @@ bool FRSetDifficultyPopup::setup(const FakeRateSaveData& data, bool legacy, SetD
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
+        this, callback = std::move(callback)
+    ](auto) mutable {
         callback(m_difficulty, m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride);
         onClose(nullptr);
     });

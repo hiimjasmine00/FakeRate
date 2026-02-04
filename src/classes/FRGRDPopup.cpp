@@ -8,7 +8,7 @@ using namespace jasmine::nodes;
 
 FRGRDPopup* FRGRDPopup::create(int grandpaDemonOverride, SetGRDCallback callback) {
     auto ret = new FRGRDPopup();
-    if (ret->initAnchored(250.0f, 200.0f, grandpaDemonOverride, std::move(callback))) {
+    if (ret->init(grandpaDemonOverride, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -16,7 +16,9 @@ FRGRDPopup* FRGRDPopup::create(int grandpaDemonOverride, SetGRDCallback callback
     return nullptr;
 }
 
-bool FRGRDPopup::setup(int grandpaDemonOverride, SetGRDCallback callback) {
+bool FRGRDPopup::init(int grandpaDemonOverride, SetGRDCallback callback) {
+    if (!Popup::init(250.0f, 200.0f)) return false;
+
     setID("FRGRDPopup");
     setTitle("Grandpa Demon");
     m_title->setID("grandpa-demon-title");
@@ -48,7 +50,9 @@ bool FRGRDPopup::setup(int grandpaDemonOverride, SetGRDCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
+        this, callback = std::move(callback)
+    ](auto) mutable {
         callback(m_grandpaDemonOverride);
         onClose(nullptr);
     });

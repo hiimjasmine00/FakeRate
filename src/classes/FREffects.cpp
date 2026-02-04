@@ -6,7 +6,7 @@ using namespace geode::prelude;
 CCSequence* getRandomSequence(float duration, double minimum, double maximum) {
     auto actions = CCArray::create();
     for (int i = 0; i < 19; i++) {
-        actions->addObject(CCFadeTo::create(duration, jasmine::random::get() * (maximum - minimum) + minimum));
+        actions->addObject(CCFadeTo::create(duration, jasmine::random::get(minimum, maximum)));
     }
     actions->addObject(CCFadeTo::create(duration, 0));
     return CCSequence::create(actions);

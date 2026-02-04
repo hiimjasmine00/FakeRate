@@ -12,7 +12,7 @@ using namespace geode::prelude;
 
 FREditPopup* FREditPopup::create(GJGameLevel* level, const FakeRateSaveData& data, UpdateFakeRateCallback callback) {
     auto ret = new FREditPopup();
-    if (ret->initAnchored(300.0f, 200.0f, level, data, std::move(callback))) {
+    if (ret->init(level, data, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -20,7 +20,9 @@ FREditPopup* FREditPopup::create(GJGameLevel* level, const FakeRateSaveData& dat
     return nullptr;
 }
 
-bool FREditPopup::setup(GJGameLevel* level, const FakeRateSaveData& data, UpdateFakeRateCallback callback) {
+bool FREditPopup::init(GJGameLevel* level, const FakeRateSaveData& data, UpdateFakeRateCallback callback) {
+    if (!Popup::init(300.0f, 200.0f)) return false;
+
     setID("FREditPopup");
     setTitle("Fake Rate");
     m_title->setID("fake-rate-title");

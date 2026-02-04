@@ -1,9 +1,9 @@
 #include "../FakeRate.hpp"
 #include <Geode/ui/Popup.hpp>
 
-typedef std::function<void(int)> SetFeatureCallback;
+typedef geode::Function<void(int)> SetFeatureCallback;
 
-class FRSetFeaturePopup : public geode::Popup<const FakeRateSaveData&, bool, SetFeatureCallback> {
+class FRSetFeaturePopup : public geode::Popup {
 protected:
     GJFeatureState m_feature;
     int m_difficulty;
@@ -14,7 +14,7 @@ protected:
     bool m_legacy;
     CCMenuItemSpriteExtra* m_selected;
 
-    bool setup(const FakeRateSaveData&, bool, SetFeatureCallback) override;
+    bool init(const FakeRateSaveData&, bool, SetFeatureCallback);
 public:
     static FRSetFeaturePopup* create(const FakeRateSaveData&, bool, SetFeatureCallback);
 };

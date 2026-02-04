@@ -8,7 +8,7 @@ using namespace jasmine::nodes;
 
 FRDIBPopup* FRDIBPopup::create(int demonsInBetweenOverride, SetDIBCallback callback) {
     auto ret = new FRDIBPopup();
-    if (ret->initAnchored(350.0f, 310.0f, demonsInBetweenOverride, std::move(callback))) {
+    if (ret->init(demonsInBetweenOverride, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -16,7 +16,9 @@ FRDIBPopup* FRDIBPopup::create(int demonsInBetweenOverride, SetDIBCallback callb
     return nullptr;
 }
 
-bool FRDIBPopup::setup(int demonsInBetweenOverride, SetDIBCallback callback) {
+bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
+    if (!Popup::init(350.0f, 310.0f)) return false;
+
     setID("FRDIBPopup");
     setTitle("Demons In Between");
     m_title->setID("demons-in-between-title");
@@ -48,7 +50,9 @@ bool FRDIBPopup::setup(int demonsInBetweenOverride, SetDIBCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [this, callback = std::move(callback)](auto) {
+    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
+        this, callback = std::move(callback)
+    ](auto) mutable {
         callback(m_demonsInBetweenOverride);
         onClose(nullptr);
     });
