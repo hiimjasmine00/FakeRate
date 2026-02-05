@@ -28,7 +28,7 @@ namespace FakeRate {
     int getDIBOverride(cocos2d::CCSprite*);
     int getGDDPOverride(cocos2d::CCSprite*);
     std::string getGDDPFrame(int, GJDifficultyName);
-};
+}
 
 template<>
 struct matjson::Serialize<FakeRateSaveData> {
