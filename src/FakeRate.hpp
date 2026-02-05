@@ -16,19 +16,18 @@ struct FakeRateSaveData {
     bool coins = true;
 };
 
-class FakeRate {
-public:
-    static std::vector<FakeRateSaveData> fakeRates;
+namespace FakeRate {
+    extern std::vector<FakeRateSaveData> fakeRates;
 
-    static FakeRateSaveData* getFakeRate(GJGameLevel*);
-    static int getDifficultyFromLevel(GJGameLevel*);
-    static std::string getSpriteName(cocos2d::CCSprite*);
-    static void toggle(cocos2d::CCNode*, bool);
-    static cocos2d::CCPoint getDIBOffset(int, GJDifficultyName);
-    static int getGRDOverride(cocos2d::CCSprite*);
-    static int getDIBOverride(cocos2d::CCSprite*);
-    static int getGDDPOverride(cocos2d::CCSprite*);
-    static std::string getGDDPFrame(int, GJDifficultyName);
+    FakeRateSaveData* getFakeRate(GJGameLevel*);
+    int getDifficultyFromLevel(GJGameLevel*);
+    std::string getSpriteName(cocos2d::CCSprite*);
+    void toggle(cocos2d::CCNode*, bool);
+    cocos2d::CCPoint getDIBOffset(int, GJDifficultyName);
+    int getGRDOverride(cocos2d::CCSprite*);
+    int getDIBOverride(cocos2d::CCSprite*);
+    int getGDDPOverride(cocos2d::CCSprite*);
+    std::string getGDDPFrame(int, GJDifficultyName);
 };
 
 template<>

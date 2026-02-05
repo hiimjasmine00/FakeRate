@@ -1,9 +1,8 @@
 #include <cocos2d.h>
 
-class FREffects {
-public:
-    static cocos2d::CCSprite* grdInfinity();
-    static std::pair<cocos2d::CCSprite*, cocos2d::CCSprite*> infinityBackgrounds(bool);
-    static cocos2d::CCSprite* mythicalBackground();
-    static cocos2d::CCSprite* legendaryBackground();
+namespace FREffects {
+    cocos2d::CCSprite* grdInfinity();
+    std::pair<cocos2d::CCSprite*, cocos2d::CCSprite*> infinityBackgrounds(bool);
+    cocos2d::CCSprite* mythicalBackground();
+    cocos2d::CCSprite* legendaryBackground();
 };
