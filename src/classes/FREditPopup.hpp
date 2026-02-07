@@ -23,7 +23,7 @@ protected:
     cocos2d::CCSprite* m_gddpSprite;
     cocos2d::CCSprite* m_starSprite;
     cocos2d::CCLabelBMFont* m_starsLabel;
-    geode::Ref<cocos2d::CCArray> m_coinSprites;
+    std::vector<cocos2d::CCSprite*> m_coinSprites;
     UpdateFakeRateCallback m_callback;
 
     bool init(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback);

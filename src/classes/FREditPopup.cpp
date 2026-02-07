@@ -96,8 +96,6 @@ bool FREditPopup::init(GJGameLevel* level, const FakeRateSaveData& data, UpdateF
     m_starsLabel->setID("stars-label");
     m_mainLayer->addChild(m_starsLabel);
 
-    m_coinSprites = CCArray::create();
-
     for (int i = 0; i < m_level->m_coins; i++) {
         auto coin = CCSprite::createWithSpriteFrameName("usercoin_small01_001.png");
         coin->setPositionX(60.0f + (
@@ -108,7 +106,7 @@ bool FREditPopup::init(GJGameLevel* level, const FakeRateSaveData& data, UpdateF
         ));
         coin->setID(fmt::format("coin-sprite-{}", i + 1));
         m_mainLayer->addChild(coin);
-        m_coinSprites->addObject(coin);
+        m_coinSprites.push_back(coin);
     }
 
     auto difficultyButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Difficulty", "goldFont.fnt", "GJ_button_02.png", 0.8f), [
@@ -251,7 +249,7 @@ void FREditPopup::updateLabels() {
     m_starsLabel->setPosition({ m_starSprite->getPositionX() - 8.0f, m_starSprite->getPositionY() });
     m_starsLabel->setString(fmt::to_string(m_stars).c_str());
     m_starsLabel->setVisible(m_stars != 0);
-    for (auto coin : CCArrayExt<CCSprite*>(m_coinSprites)) {
+    for (auto coin : m_coinSprites) {
         coin->setPositionY(m_difficultySprite->getPositionY() - 31.5f - (m_stars != 0 ? 14.0f : 0.0f) - (isDemon ? 9.0f : 0.0f));
         coin->setColor(m_coins ? ccColor3B { 255, 255, 255 } : ccColor3B { 255, 175, 75 });
     }
