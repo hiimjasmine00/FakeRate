@@ -96,6 +96,8 @@ bool FREditPopup::init(GJGameLevel* level, const FakeRateSaveData& data, UpdateF
     m_starsLabel->setID("stars-label");
     m_mainLayer->addChild(m_starsLabel);
 
+    m_coinSprites.reserve(m_level->m_coins);
+
     for (int i = 0; i < m_level->m_coins; i++) {
         auto coin = CCSprite::createWithSpriteFrameName("usercoin_small01_001.png");
         coin->setPositionX(60.0f + (
