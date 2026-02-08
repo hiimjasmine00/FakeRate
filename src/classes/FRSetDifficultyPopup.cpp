@@ -9,6 +9,12 @@
 using namespace geode::prelude;
 using namespace jasmine::nodes;
 
+constexpr std::array difficulties = {
+    std::make_pair(0, 0), std::make_pair(-1, 0), std::make_pair(1, 0), std::make_pair(2, 0), std::make_pair(3, 4),
+    std::make_pair(3, 0), std::make_pair(4, 0), std::make_pair(4, 7), std::make_pair(5, 0), std::make_pair(5, 9),
+    std::make_pair(7, 0), std::make_pair(8, 0), std::make_pair(6, 0), std::make_pair(9, 0), std::make_pair(10, 0)
+};
+
 FRSetDifficultyPopup* FRSetDifficultyPopup::create(const FakeRateSaveData& data, bool legacy, SetDifficultyCallback callback) {
     auto ret = new FRSetDifficultyPopup();
     if (ret->init(data, legacy, std::move(callback))) {
