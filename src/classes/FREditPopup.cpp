@@ -242,7 +242,7 @@ void FREditPopup::onRemove(CCObject* sender) {
         "No",
         "Yes",
         350.0f
-    );
+    )->show();
 }
 
 void FREditPopup::FLAlert_Clicked(FLAlertLayer* alert, bool btn2) {
