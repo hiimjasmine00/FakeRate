@@ -3,7 +3,7 @@
 
 typedef geode::Function<void(int)> SetStarsCallback;
 
-class FRSetStarsPopup : public geode::Popup {
+class FRSetStarsPopup : public geode::Popup, public TextInputDelegate {
 protected:
     int m_stars;
     geode::TextInput* m_input;
@@ -12,6 +12,7 @@ protected:
     SetStarsCallback m_callback;
 
     bool init(int, bool, SetStarsCallback);
+    void textChanged(CCTextInputNode*) override;
     void onLeft(cocos2d::CCObject*);
     void onRight(cocos2d::CCObject*);
     void onConfirm(cocos2d::CCObject*);

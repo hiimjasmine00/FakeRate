@@ -33,13 +33,7 @@ bool FRSetStarsPopup::init(int stars, bool platformer, SetStarsCallback callback
     m_input->getInputNode()->setLabelPlaceholderColor({ 120, 170, 240 });
     m_input->setString(fmt::to_string(m_stars));
     m_input->setMaxCharCount(11);
-    m_input->setCallback([this](const std::string& text) {
-        if (auto stars = numFromString<int>(text)) {
-            m_stars = stars.unwrap();
-            m_label->setString(fmt::to_string(m_stars).c_str());
-            m_starLayout->updateLayout();
-        }
-    });
+    m_input->setDelegate(this);
     m_input->setID("stars-input");
     m_mainLayer->addChild(m_input);
 
@@ -82,6 +76,14 @@ bool FRSetStarsPopup::init(int stars, bool platformer, SetStarsCallback callback
     m_buttonMenu->addChild(confirmButton);
 
     return true;
+}
+
+void FRSetStarsPopup::textChanged(CCTextInputNode* input) {
+    if (auto stars = numFromString<int>(input->getString())) {
+        m_stars = stars.unwrap();
+        m_label->setString(fmt::to_string(m_stars).c_str());
+        m_starLayout->updateLayout();
+    }
 }
 
 void FRSetStarsPopup::onLeft(CCObject* sender) {
