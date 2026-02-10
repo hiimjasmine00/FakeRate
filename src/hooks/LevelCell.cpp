@@ -208,7 +208,7 @@ class $modify(FRLevelCell, LevelCell) {
 
         if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && dbo > 0 && dbo < 21) {
             if (demonsInBetween->getSettingValue<bool>("enable-difficulties")) {
-                auto dibFeature = "";
+                std::string_view dibFeature = "";
                 if (data->feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
                 else if (data->feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
                 auto dibSprite = CCSprite::createWithSpriteFrameName(

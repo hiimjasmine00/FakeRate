@@ -23,7 +23,7 @@ endif()
 
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
 
-CPMAddPackage("gh:hiimjasmine00/jasmine-tools@1.4.0")
+CPMAddPackage("gh:hiimjasmine00/jasmine-tools@1.5.0")
 target_link_libraries(${PROJECT_NAME} jasmine-tools)
 
 setup_geode_mod(${PROJECT_NAME})

@@ -33,6 +33,7 @@ bool FRSetFeaturePopup::init(const FakeRateSaveData& data, bool legacy, SetFeatu
     m_demonsInBetweenOverride = data.demonsInBetweenOverride;
     m_gddpIntegrationOverride = data.gddpIntegrationOverride;
     m_legacy = legacy;
+    m_callback = std::move(callback);
 
     auto menuRow = CCMenu::create();
     menuRow->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Even));
@@ -64,7 +65,7 @@ bool FRSetFeaturePopup::init(const FakeRateSaveData& data, bool legacy, SetFeatu
             difficultySprite->addChild(grdSprite);
         }
         if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && m_demonsInBetweenOverride > 0) {
-            auto dibFeature = "";
+            std::string_view dibFeature = "";
             if (i == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
             else if (i == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
             auto dibSprite = CCSprite::createWithSpriteFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn2_001.png",
@@ -81,17 +82,8 @@ bool FRSetFeaturePopup::init(const FakeRateSaveData& data, bool legacy, SetFeatu
             difficultySprite->setOpacity(0);
             difficultySprite->addChild(gddpSprite);
         }
-        auto toggle = CCMenuItemExt::createSpriteExtra(difficultySprite, [this, feature](CCMenuItemSpriteExtra* sender) {
-            if (sender == m_selected) return;
-            m_feature = feature;
-            if (m_selected) {
-                FakeRate::toggle(m_selected->getNormalImage(), false);
-                if (auto particleSystem = m_selected->getNormalImage()->getChildByType<CCParticleSystemQuad>(0)) particleSystem->setVisible(false);
-            }
-            FakeRate::toggle(sender->getNormalImage(), true);
-            if (auto particleSystem = sender->getNormalImage()->getChildByType<CCParticleSystemQuad>(0)) particleSystem->setVisible(true);
-            m_selected = sender;
-        });
+        auto toggle = CCMenuItemSpriteExtra::create(difficultySprite, this, menu_selector(FRSetFeaturePopup::onToggle));
+        toggle->setTag(i);
         toggle->setID(fmt::format("feature-button-{}", i + 1));
         FakeRate::toggle(difficultySprite, feature == m_feature);
         if (auto particleSystem = difficultySprite->getChildByType<CCParticleSystemQuad>(0)) particleSystem->setVisible(feature == m_feature);
@@ -101,15 +93,33 @@ bool FRSetFeaturePopup::init(const FakeRateSaveData& data, bool legacy, SetFeatu
 
     menuRow->updateLayout();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
-        this, callback = std::move(callback)
-    ](auto) mutable {
-        callback((int)m_feature);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemSpriteExtra::create(ButtonSprite::create("Confirm", 0.8f), this, menu_selector(FRSetFeaturePopup::onConfirm));
     confirmButton->setPosition({ 150.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);
 
     return true;
+}
+
+void FRSetFeaturePopup::onToggle(CCObject* sender) {
+    if (sender == m_selected) return;
+    m_feature = (GJFeatureState)sender->getTag();
+    if (m_selected) {
+        FakeRate::toggle(m_selected->getNormalImage(), false);
+        if (auto particleSystem = m_selected->getNormalImage()->getChildByType<CCParticleSystemQuad>(0)) {
+            particleSystem->setVisible(false);
+        }
+    }
+    auto toggle = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto normalImage = toggle->getNormalImage();
+    FakeRate::toggle(normalImage, true);
+    if (auto particleSystem = normalImage->getChildByType<CCParticleSystemQuad>(0)) {
+        particleSystem->setVisible(true);
+    }
+    m_selected = toggle;
+}
+
+void FRSetFeaturePopup::onConfirm(CCObject* sender) {
+    m_callback((int)m_feature);
+    onClose(nullptr);
 }

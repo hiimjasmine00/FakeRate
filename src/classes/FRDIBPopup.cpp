@@ -35,13 +35,10 @@ bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
     m_mainLayer->addChild(table);
 
     for (int i = 1; i < 21; i++) {
-        auto toggle = CCMenuItemExt::createSpriteExtraWithFrameName(
-            fmt::format("hiimjustin000.demons_in_between/DIB_{:02}_btn2_001.png", i).c_str(), 1.0f, [this, i](CCMenuItemSpriteExtra* sender) {
-                m_demonsInBetweenOverride = sender != m_selected ? i : 0;
-                if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
-                if (sender != m_selected) FakeRate::toggle(sender->getNormalImage(), true);
-                m_selected = sender != m_selected ? sender : nullptr;
-            });
+        auto toggle = CCMenuItemSpriteExtra::create(
+            CCSprite::createWithSpriteFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02}_btn2_001.png", i).c_str()),
+            this, menu_selector(FRDIBPopup::onToggle)
+        );
         toggle->setID(fmt::format("dib-button-{}", i));
         FakeRate::toggle(toggle->getNormalImage(), i == m_demonsInBetweenOverride);
         m_selected = i == m_demonsInBetweenOverride ? toggle : m_selected;
@@ -50,15 +47,23 @@ bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
-        this, callback = std::move(callback)
-    ](auto) mutable {
-        callback(m_demonsInBetweenOverride);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemSpriteExtra::create(ButtonSprite::create("Confirm", 0.8f), this, menu_selector(FRDIBPopup::onConfirm));
     confirmButton->setPosition({ 175.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);
 
     return true;
+}
+
+void FRDIBPopup::onToggle(CCObject* sender) {
+    m_demonsInBetweenOverride = sender != m_selected ? sender->getTag() : 0;
+    if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
+    auto toggle = static_cast<CCMenuItemSpriteExtra*>(sender);
+    if (sender != m_selected) FakeRate::toggle(toggle->getNormalImage(), true);
+    m_selected = sender != m_selected ? toggle : nullptr;
+}
+
+void FRDIBPopup::onConfirm(CCObject* sender) {
+    m_callback(m_demonsInBetweenOverride);
+    onClose(nullptr);
 }

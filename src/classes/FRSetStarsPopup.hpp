@@ -9,8 +9,12 @@ protected:
     geode::TextInput* m_input;
     cocos2d::CCLabelBMFont* m_label;
     cocos2d::CCNode* m_starLayout;
+    SetStarsCallback m_callback;
 
     bool init(int, bool, SetStarsCallback);
+    void onLeft(cocos2d::CCObject*);
+    void onRight(cocos2d::CCObject*);
+    void onConfirm(cocos2d::CCObject*);
 public:
     static FRSetStarsPopup* create(int, bool, SetStarsCallback);
 };

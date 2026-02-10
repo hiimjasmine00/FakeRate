@@ -59,8 +59,9 @@ bool FRSetDifficultyPopup::init(const FakeRateSaveData& data, bool legacy, SetDi
     table->setID("difficulty-buttons");
     m_mainLayer->addChild(table);
 
-    int i = 1;
-    for (auto [d, mdo] : difficulties) {
+    int id = 1;
+    for (int i = 0; i < difficulties.size(); i++) {
+        auto [d, mdo] = difficulties[i];
         auto num = d == -1 ? "auto" : fmt::format("{:02d}", d);
         auto frameName = d > 5 ? fmt::format("difficulty_{}_btn2_001.png", num) : fmt::format("difficulty_{}_btn_001.png", num);
         if (moreDifficulties && mdo > 0) {
@@ -70,18 +71,11 @@ bool FRSetDifficultyPopup::init(const FakeRateSaveData& data, bool legacy, SetDi
             frameName = fmt::format("uproxide.more_difficulties/MD_Difficulty{:02d}{}.png", mdo, m_legacy ? "_Legacy" : "");
         }
         else if (mdo > 0) continue;
-        auto toggle = CCMenuItemExt::createSpriteExtraWithFrameName(frameName.c_str(), 1.0f, [this, d, mdo](CCMenuItemSpriteExtra* sender) {
-            m_difficulty = d;
-            m_moreDifficultiesOverride = mdo;
-            m_grandpaDemonOverride = 0;
-            m_demonsInBetweenOverride = 0;
-            m_gddpIntegrationOverride = 0;
-            if (sender == m_selected) return;
-            if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
-            FakeRate::toggle(sender->getNormalImage(), true);
-            m_selected = sender;
-        });
-        toggle->setID(fmt::format("difficulty-button-{}", i++));
+        auto toggle = CCMenuItemSpriteExtra::create(
+            CCSprite::createWithSpriteFrameName(frameName.c_str()), this, menu_selector(FRSetDifficultyPopup::onToggle)
+        );
+        toggle->setTag(i);
+        toggle->setID(fmt::format("difficulty-button-{}", id++));
         auto isToggled = mdo == m_moreDifficultiesOverride && (m_moreDifficultiesOverride <= 0 ? d == m_difficulty : true);
         FakeRate::toggle(toggle->getNormalImage(), isToggled);
         m_selected = isToggled ? toggle : m_selected;
@@ -90,12 +84,9 @@ bool FRSetDifficultyPopup::init(const FakeRateSaveData& data, bool legacy, SetDi
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
-        this, callback = std::move(callback)
-    ](auto) mutable {
-        callback(m_difficulty, m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Confirm", 0.8f), this, menu_selector(FRSetDifficultyPopup::onConfirm)
+    );
     confirmButton->setPosition({ 150.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);
@@ -108,39 +99,27 @@ bool FRSetDifficultyPopup::init(const FakeRateSaveData& data, bool legacy, SetDi
     m_mainLayer->addChild(overrideMenu);
 
     if (loader->isModLoaded("itzkiba.grandpa_demon")) {
-        auto grdButton = CCMenuItemExt::createSpriteExtraWithFilename("FR_grdBtn_001.png"_spr, 0.65f, [this](auto) {
-            FRGRDPopup::create(m_grandpaDemonOverride, [this](int grd) {
-                m_grandpaDemonOverride = grd;
-                m_demonsInBetweenOverride = 0;
-                m_gddpIntegrationOverride = 0;
-            })->show();
-        });
+        auto grdSprite = CCSprite::create("FR_grdBtn_001.png"_spr);
+        grdSprite->setScale(0.65f);
+        auto grdButton = CCMenuItemSpriteExtra::create(grdSprite, this, menu_selector(FRSetDifficultyPopup::onGrandpaDemon));
         grdButton->setID("grd-button");
         overrideMenu->addChild(grdButton);
     }
 
     if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between");
         demonsInBetween && demonsInBetween->getSettingValue<bool>("enable-difficulties")) {
-        auto dibButton = CCMenuItemExt::createSpriteExtraWithFilename("FR_dibBtn_001.png"_spr, 0.75f, [this](auto) {
-            FRDIBPopup::create(m_demonsInBetweenOverride, [this](int dib) {
-                m_grandpaDemonOverride = 0;
-                m_demonsInBetweenOverride = dib;
-                m_gddpIntegrationOverride = 0;
-            })->show();
-        });
+        auto dibSprite = CCSprite::create("FR_dibBtn_001.png"_spr);
+        dibSprite->setScale(0.75f);
+        auto dibButton = CCMenuItemSpriteExtra::create(dibSprite, this, menu_selector(FRSetDifficultyPopup::onDemonsInBetween));
         dibButton->setID("dib-button");
         overrideMenu->addChild(dibButton);
     }
 
     if (auto gddpIntegration = loader->getLoadedMod("minemaker0430.gddp_integration");
         gddpIntegration && gddpIntegration->getSettingValue<bool>("custom-difficulty-faces")) {
-        auto gddpButton = CCMenuItemExt::createSpriteExtraWithFilename("FR_gddpBtn_001.png"_spr, 0.65f, [this](auto) {
-            FRGDDPPopup::create(m_gddpIntegrationOverride, [this](int gddp) {
-                m_grandpaDemonOverride = 0;
-                m_demonsInBetweenOverride = 0;
-                m_gddpIntegrationOverride = gddp;
-            })->show();
-        });
+        auto gddpSprite = CCSprite::create("FR_gddpBtn_001.png"_spr);
+        gddpSprite->setScale(0.65f);
+        auto gddpButton = CCMenuItemSpriteExtra::create(gddpSprite, this, menu_selector(FRSetDifficultyPopup::onGDDPIntegration));
         gddpButton->setID("gddp-button");
         overrideMenu->addChild(gddpButton);
     }
@@ -148,4 +127,47 @@ bool FRSetDifficultyPopup::init(const FakeRateSaveData& data, bool legacy, SetDi
     overrideMenu->updateLayout();
 
     return true;
+}
+
+void FRSetDifficultyPopup::onToggle(CCObject* sender) {
+    auto [d, mdo] = difficulties[sender->getTag()];
+    m_difficulty = d;
+    m_moreDifficultiesOverride = mdo;
+    m_grandpaDemonOverride = 0;
+    m_demonsInBetweenOverride = 0;
+    m_gddpIntegrationOverride = 0;
+    if (sender == m_selected) return;
+    if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
+    auto toggle = static_cast<CCMenuItemSpriteExtra*>(sender);
+    FakeRate::toggle(toggle->getNormalImage(), true);
+    m_selected = toggle;
+}
+
+void FRSetDifficultyPopup::onGrandpaDemon(CCObject* sender) {
+    FRGRDPopup::create(m_grandpaDemonOverride, [this](int grd) {
+        m_grandpaDemonOverride = grd;
+        m_demonsInBetweenOverride = 0;
+        m_gddpIntegrationOverride = 0;
+    })->show();
+}
+
+void FRSetDifficultyPopup::onDemonsInBetween(CCObject* sender) {
+    FRDIBPopup::create(m_demonsInBetweenOverride, [this](int dib) {
+        m_grandpaDemonOverride = 0;
+        m_demonsInBetweenOverride = dib;
+        m_gddpIntegrationOverride = 0;
+    })->show();
+}
+
+void FRSetDifficultyPopup::onGDDPIntegration(CCObject* sender) {
+    FRGDDPPopup::create(m_gddpIntegrationOverride, [this](int gddp) {
+        m_grandpaDemonOverride = 0;
+        m_demonsInBetweenOverride = 0;
+        m_gddpIntegrationOverride = gddp;
+    })->show();
+}
+
+void FRSetDifficultyPopup::onConfirm(CCObject* sender) {
+    m_callback(m_difficulty, m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride);
+    onClose(nullptr);
 }

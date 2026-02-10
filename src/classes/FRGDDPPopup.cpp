@@ -35,14 +35,11 @@ bool FRGDDPPopup::init(int gddpIntegrationOverride, SetGDDPCallback callback) {
     m_mainLayer->addChild(table);
 
     for (int i = 1; i < 17; i++) {
-        auto toggle = CCMenuItemExt::createSpriteExtraWithFrameName(FakeRate::getGDDPFrame(i, GJDifficultyName::Long).c_str(), 1.0f, [
-            this, i
-        ](CCMenuItemSpriteExtra* sender) {
-            m_gddpIntegrationOverride = sender != m_selected ? i : 0;
-            if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
-            if (sender != m_selected) FakeRate::toggle(sender->getNormalImage(), true);
-            m_selected = sender != m_selected ? sender : nullptr;
-        });
+        auto toggle = CCMenuItemSpriteExtra::create(
+            CCSprite::createWithSpriteFrameName(FakeRate::getGDDPFrame(i, GJDifficultyName::Long).c_str()),
+            this, menu_selector(FRGDDPPopup::onToggle)
+        );
+        toggle->setTag(i);
         toggle->setID(fmt::format("gddp-button-{}", i));
         FakeRate::toggle(toggle->getNormalImage(), i == m_gddpIntegrationOverride);
         m_selected = i == m_gddpIntegrationOverride ? toggle : m_selected;
@@ -51,15 +48,23 @@ bool FRGDDPPopup::init(int gddpIntegrationOverride, SetGDDPCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
-        this, callback = std::move(callback)
-    ](auto) mutable {
-        callback(m_gddpIntegrationOverride);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemSpriteExtra::create(ButtonSprite::create("Confirm", 0.8f), this, menu_selector(FRGDDPPopup::onConfirm));
     confirmButton->setPosition({ 125.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);
 
     return true;
+}
+
+void FRGDDPPopup::onToggle(CCObject* sender) {
+    m_gddpIntegrationOverride = sender != m_selected ? sender->getTag() : 0;
+    if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
+    auto toggle = static_cast<CCMenuItemSpriteExtra*>(sender);
+    FakeRate::toggle(toggle->getNormalImage(), toggle != m_selected);
+    m_selected = toggle != m_selected ? toggle : nullptr;
+}
+
+void FRGDDPPopup::onConfirm(CCObject* sender) {
+    m_callback(m_gddpIntegrationOverride);
+    onClose(nullptr);
 }

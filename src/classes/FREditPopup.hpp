@@ -1,9 +1,10 @@
 #include "../FakeRate.hpp"
+#include <Geode/binding/FLAlertLayerProtocol.hpp>
 #include <Geode/ui/Popup.hpp>
 
 typedef geode::Function<void(const FakeRateSaveData&, bool)> UpdateFakeRateCallback;
 
-class FREditPopup : public geode::Popup {
+class FREditPopup : public geode::Popup, public FLAlertLayerProtocol {
 protected:
     GJGameLevel* m_level;
     int m_stars;
@@ -27,6 +28,13 @@ protected:
     UpdateFakeRateCallback m_callback;
 
     bool init(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback);
+    void onDifficulty(cocos2d::CCObject*);
+    void onStars(cocos2d::CCObject*);
+    void onFeature(cocos2d::CCObject*);
+    void onCoins(cocos2d::CCObject*);
+    void onAdd(cocos2d::CCObject*);
+    void onRemove(cocos2d::CCObject*);
+    void FLAlert_Clicked(FLAlertLayer*, bool) override;
     void updateLabels();
 public:
     static FREditPopup* create(GJGameLevel*, const FakeRateSaveData&, UpdateFakeRateCallback);

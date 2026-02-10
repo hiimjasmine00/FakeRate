@@ -36,13 +36,12 @@ bool FRGRDPopup::init(int grandpaDemonOverride, SetGRDCallback callback) {
     m_mainLayer->addChild(table);
 
     for (int i = 1; i < 7; i++) {
-        auto toggle = CCMenuItemExt::createSpriteExtraWithFrameName(fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", i - 1).c_str(), 1.0f,
-            [this, i](CCMenuItemSpriteExtra* sender) {
-                m_grandpaDemonOverride = sender != m_selected ? i : 0;
-                if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
-                if (sender != m_selected) FakeRate::toggle(sender->getNormalImage(), true);
-                m_selected = sender != m_selected ? sender : nullptr;
-            });
+        auto toggle = CCMenuItemSpriteExtra::create(
+            CCSprite::createWithSpriteFrameName(fmt::format("itzkiba.grandpa_demon/GrD_demon{}_text.png", i - 1).c_str()),
+            this, menu_selector(FRGRDPopup::onToggle)
+        );
+        toggle->setTag(i);
+        toggle->setID(fmt::format("grd-button-{}", i));
         FakeRate::toggle(toggle->getNormalImage(), i == m_grandpaDemonOverride);
         m_selected = i == m_grandpaDemonOverride ? toggle : m_selected;
         table->addButton(toggle);
@@ -50,15 +49,23 @@ bool FRGRDPopup::init(int grandpaDemonOverride, SetGRDCallback callback) {
 
     table->updateAllLayouts();
 
-    auto confirmButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Confirm", 0.8f), [
-        this, callback = std::move(callback)
-    ](auto) mutable {
-        callback(m_grandpaDemonOverride);
-        onClose(nullptr);
-    });
+    auto confirmButton = CCMenuItemSpriteExtra::create(ButtonSprite::create("Confirm", 0.8f), this, menu_selector(FRGRDPopup::onConfirm));
     confirmButton->setPosition({ 125.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);
 
     return true;
+}
+
+void FRGRDPopup::onToggle(CCObject* sender) {
+    m_grandpaDemonOverride = sender != m_selected ? sender->getTag() : 0;
+    if (m_selected) FakeRate::toggle(m_selected->getNormalImage(), false);
+    auto toggle = static_cast<CCMenuItemSpriteExtra*>(sender);
+    if (sender != m_selected) FakeRate::toggle(toggle->getNormalImage(), true);
+    m_selected = sender != m_selected ? toggle : nullptr;
+}
+
+void FRGRDPopup::onConfirm(CCObject* sender) {
+    m_callback(m_grandpaDemonOverride);
+    onClose(nullptr);
 }

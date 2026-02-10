@@ -7,6 +7,7 @@
 #include <Geode/binding/GJDifficultySprite.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <jasmine/level.hpp>
 
 using namespace geode::prelude;
 
@@ -111,60 +112,33 @@ bool FREditPopup::init(GJGameLevel* level, const FakeRateSaveData& data, UpdateF
         m_coinSprites.push_back(coin);
     }
 
-    auto difficultyButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Difficulty", "goldFont.fnt", "GJ_button_02.png", 0.8f), [
-        this
-    ](auto) {
-        FRSetDifficultyPopup::create({
-            .difficulty = m_difficulty,
-            .moreDifficultiesOverride = m_moreDifficultiesOverride,
-            .grandpaDemonOverride = m_grandpaDemonOverride,
-            .demonsInBetweenOverride = m_demonsInBetweenOverride,
-            .gddpIntegrationOverride = m_gddpIntegrationOverride
-        }, m_legacy, [this](int difficulty, int mdo, int gdo, int dbo, int gio) {
-            m_difficulty = difficulty;
-            m_moreDifficultiesOverride = mdo;
-            m_grandpaDemonOverride = gdo;
-            m_demonsInBetweenOverride = dbo;
-            m_gddpIntegrationOverride = gio;
-            updateLabels();
-        })->show();
-    });
+    auto difficultyButton = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Difficulty", "goldFont.fnt", "GJ_button_02.png", 0.8f), this, menu_selector(FREditPopup::onDifficulty)
+    );
     difficultyButton->setPosition({ 200.0f, 150.0f });
     difficultyButton->setID("difficulty-button");
     m_buttonMenu->addChild(difficultyButton);
 
-    auto starsButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create(m_level->isPlatformer() ? "Moons" : "Stars",
-        "goldFont.fnt", "GJ_button_02.png", 0.8f), [this](auto) {
-        FRSetStarsPopup::create(m_stars, m_level->isPlatformer(), [this](int stars) {
-            m_stars = stars;
-            updateLabels();
-        })->show();
-    });
+    auto starsButton = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create(m_level->isPlatformer() ? "Moons" : "Stars", "goldFont.fnt", "GJ_button_02.png", 0.8f),
+        this, menu_selector(FREditPopup::onStars)
+    );
     starsButton->setPosition({ 200.0f, 110.0f });
     starsButton->setID("stars-button");
     m_buttonMenu->addChild(starsButton);
 
-    auto featureButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Feature", "goldFont.fnt", "GJ_button_02.png", 0.8f), [this](auto) {
-        FRSetFeaturePopup::create({
-            .feature = m_feature,
-            .difficulty = m_difficulty,
-            .moreDifficultiesOverride = m_moreDifficultiesOverride,
-            .grandpaDemonOverride = m_grandpaDemonOverride,
-            .demonsInBetweenOverride = m_demonsInBetweenOverride,
-            .gddpIntegrationOverride = m_gddpIntegrationOverride
-        }, m_legacy, [this](int feature) {
-            m_feature = feature;
-            updateLabels();
-        })->show();
-    });
+    auto featureButton = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Feature", "goldFont.fnt", "GJ_button_02.png", 0.8f), this, menu_selector(FREditPopup::onFeature)
+    );
     featureButton->setPosition({ 200.0f, 70.0f });
     featureButton->setID("feature-button");
     m_buttonMenu->addChild(featureButton);
 
-    auto coinsToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.7f, [this](auto) {
-        m_coins = !m_coins;
-        updateLabels();
-    });
+    auto offSprite = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
+    offSprite->setScale(0.7f);
+    auto onSprite = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
+    onSprite->setScale(0.7f);
+    auto coinsToggle = CCMenuItemToggler::create(offSprite, onSprite, this, menu_selector(FREditPopup::onCoins));
     coinsToggle->setPosition({ 30.0f, 30.0f });
     coinsToggle->toggle(m_coins);
     coinsToggle->setID("coins-toggle");
@@ -176,62 +150,16 @@ bool FREditPopup::init(GJGameLevel* level, const FakeRateSaveData& data, UpdateF
     coinsLabel->setID("coins-label");
     m_mainLayer->addChild(coinsLabel);
 
-    auto addButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Add", "goldFont.fnt", "GJ_button_01.png", 0.8f), [this](auto) {
-        auto levelID = m_level->m_levelID.value();
-        auto it = std::ranges::find(FakeRate::fakeRates, levelID, &FakeRateSaveData::id);
-        if (auto data = FakeRate::getFakeRate(m_level)) {
-            data->stars = m_stars;
-            data->feature = m_feature;
-            data->difficulty = m_difficulty;
-            data->moreDifficultiesOverride = m_moreDifficultiesOverride;
-            data->grandpaDemonOverride = m_grandpaDemonOverride;
-            data->demonsInBetweenOverride = m_demonsInBetweenOverride;
-            data->gddpIntegrationOverride = m_gddpIntegrationOverride;
-            data->coins = m_coins;
-            m_callback(*data, false);
-        }
-        else {
-            m_callback(FakeRate::fakeRates.emplace_back(m_level->m_levelID.value(), m_stars, m_feature, m_difficulty,
-                m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride, m_coins), false);
-        }
-
-        onClose(nullptr);
-    });
+    auto addButton = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Add", "goldFont.fnt", "GJ_button_01.png", 0.8f), this, menu_selector(FREditPopup::onAdd)
+    );
     addButton->setPosition({ 150.0f, 30.0f });
     addButton->setID("add-button");
     m_buttonMenu->addChild(addButton);
 
-    auto removeButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Remove", "goldFont.fnt", "GJ_button_06.png", 0.8f), [this](auto) {
-        createQuickPopup(
-            "Remove Fake Rate",
-            "Are you sure you want to <cr>remove</c> the <cg>fake rate</c> for this <cy>level</c>?",
-            "No",
-            "Yes",
-            [this](FLAlertLayer*, bool btn2) {
-                if (!btn2) return;
-
-                auto levelID = m_level->m_levelID.value();
-                auto subrange = std::ranges::remove(FakeRate::fakeRates, levelID, &FakeRateSaveData::id);
-                if (subrange.begin() == FakeRate::fakeRates.end()) return;
-                FakeRate::fakeRates.erase(subrange.begin(), subrange.end());
-
-                auto stars = m_level->m_stars.value();
-                m_callback({
-                    .id = levelID,
-                    .stars = stars,
-                    .feature = m_level->m_featured > 1 ? m_level->m_isEpic + 1 : 0,
-                    .difficulty = FakeRate::getDifficultyFromLevel(m_level),
-                    .moreDifficultiesOverride =
-                        Loader::get()->isModLoaded("uproxide.more_difficulties") && (stars == 4 || stars == 7 || stars == 9) ? stars : 0,
-                    .grandpaDemonOverride = 0,
-                    .demonsInBetweenOverride = 0,
-                    .gddpIntegrationOverride = 0,
-                    .coins = m_level->m_coinsVerified > 0
-                }, true);
-                onClose(nullptr);
-            }
-        );
-    });
+    auto removeButton = CCMenuItemSpriteExtra::create(
+        ButtonSprite::create("Remove", "goldFont.fnt", "GJ_button_06.png", 0.8f), this, menu_selector(FREditPopup::onRemove)
+    );
     removeButton->setPosition({ 235.0f, 30.0f });
     removeButton->setID("remove-button");
     m_buttonMenu->addChild(removeButton);
@@ -239,6 +167,106 @@ bool FREditPopup::init(GJGameLevel* level, const FakeRateSaveData& data, UpdateF
     updateLabels();
 
     return true;
+}
+
+void FREditPopup::onDifficulty(CCObject* sender) {
+    FRSetDifficultyPopup::create({
+        .difficulty = m_difficulty,
+        .moreDifficultiesOverride = m_moreDifficultiesOverride,
+        .grandpaDemonOverride = m_grandpaDemonOverride,
+        .demonsInBetweenOverride = m_demonsInBetweenOverride,
+        .gddpIntegrationOverride = m_gddpIntegrationOverride
+    }, m_legacy, [this](int difficulty, int mdo, int gdo, int dbo, int gio) {
+        m_difficulty = difficulty;
+        m_moreDifficultiesOverride = mdo;
+        m_grandpaDemonOverride = gdo;
+        m_demonsInBetweenOverride = dbo;
+        m_gddpIntegrationOverride = gio;
+        updateLabels();
+    })->show();
+}
+
+void FREditPopup::onStars(CCObject* sender) {
+    FRSetStarsPopup::create(m_stars, m_level->isPlatformer(), [this](int stars) {
+        m_stars = stars;
+        updateLabels();
+    })->show();
+}
+
+void FREditPopup::onFeature(CCObject* sender) {
+    FRSetFeaturePopup::create({
+        .feature = m_feature,
+        .difficulty = m_difficulty,
+        .moreDifficultiesOverride = m_moreDifficultiesOverride,
+        .grandpaDemonOverride = m_grandpaDemonOverride,
+        .demonsInBetweenOverride = m_demonsInBetweenOverride,
+        .gddpIntegrationOverride = m_gddpIntegrationOverride
+    }, m_legacy, [this](int feature) {
+        m_feature = feature;
+        updateLabels();
+    })->show();
+}
+
+void FREditPopup::onCoins(CCObject* sender) {
+    m_coins = !m_coins;
+    updateLabels();
+}
+
+void FREditPopup::onAdd(CCObject* sender) {
+    auto levelID = m_level->m_levelID.value();
+    auto it = std::ranges::find(FakeRate::fakeRates, levelID, &FakeRateSaveData::id);
+    if (auto data = FakeRate::getFakeRate(m_level)) {
+        data->stars = m_stars;
+        data->feature = m_feature;
+        data->difficulty = m_difficulty;
+        data->moreDifficultiesOverride = m_moreDifficultiesOverride;
+        data->grandpaDemonOverride = m_grandpaDemonOverride;
+        data->demonsInBetweenOverride = m_demonsInBetweenOverride;
+        data->gddpIntegrationOverride = m_gddpIntegrationOverride;
+        data->coins = m_coins;
+        m_callback(*data, false);
+    }
+    else {
+        m_callback(FakeRate::fakeRates.emplace_back(m_level->m_levelID.value(), m_stars, m_feature, m_difficulty,
+            m_moreDifficultiesOverride, m_grandpaDemonOverride, m_demonsInBetweenOverride, m_gddpIntegrationOverride, m_coins), false);
+    }
+
+    onClose(nullptr);
+}
+
+void FREditPopup::onRemove(CCObject* sender) {
+    FLAlertLayer::create(
+        this,
+        "Remove Fake Rate",
+        "Are you sure you want to <cr>remove</c> the <cg>fake rate</c> for this <cy>level</c>?",
+        "No",
+        "Yes",
+        350.0f
+    );
+}
+
+void FREditPopup::FLAlert_Clicked(FLAlertLayer* alert, bool btn2) {
+    if (!btn2) return;
+
+    auto levelID = m_level->m_levelID.value();
+    auto subrange = std::ranges::remove(FakeRate::fakeRates, levelID, &FakeRateSaveData::id);
+    if (subrange.begin() == FakeRate::fakeRates.end()) return;
+    FakeRate::fakeRates.erase(subrange.begin(), subrange.end());
+
+    auto stars = m_level->m_stars.value();
+    m_callback({
+        .id = levelID,
+        .stars = stars,
+        .feature = m_level->m_featured > 1 ? m_level->m_isEpic + 1 : 0,
+        .difficulty = jasmine::level::getDifficulty(m_level),
+        .moreDifficultiesOverride =
+            Loader::get()->isModLoaded("uproxide.more_difficulties") && (stars == 4 || stars == 7 || stars == 9) ? stars : 0,
+        .grandpaDemonOverride = 0,
+        .demonsInBetweenOverride = 0,
+        .gddpIntegrationOverride = 0,
+        .coins = m_level->m_coinsVerified > 0
+    }, true);
+    onClose(nullptr);
 }
 
 void FREditPopup::updateLabels() {
@@ -288,7 +316,7 @@ void FREditPopup::updateLabels() {
     if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between")) {
         if (!demonsInBetween->getSettingValue<bool>("enable-difficulties")) m_demonsInBetweenOverride = 0;
         if (m_demonsInBetweenOverride > 0 && m_demonsInBetweenOverride < 21) {
-            auto dibFeature = "";
+            std::string_view dibFeature = "";
             if (m_feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
             else if (m_feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
             m_dibSprite->setDisplayFrame(sfc->spriteFrameByName(

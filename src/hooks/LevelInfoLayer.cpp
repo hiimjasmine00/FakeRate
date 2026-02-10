@@ -6,6 +6,7 @@
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <jasmine/hook.hpp>
+#include <jasmine/level.hpp>
 
 using namespace geode::prelude;
 
@@ -98,7 +99,7 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         data.id = level->m_levelID.value();
         data.stars = stars;
         data.feature = level->m_featured > 0 ? level->m_isEpic + 1 : 0;
-        data.difficulty = FakeRate::getDifficultyFromLevel(m_level);
+        data.difficulty = jasmine::level::getDifficulty(m_level);
         data.moreDifficultiesOverride = mdo;
         data.grandpaDemonOverride = grandpaDemon && (!gddpOverride || !gddpDifficulty) ? FakeRate::getGRDOverride(grandpaDemon) : 0;
         data.demonsInBetweenOverride = demonInBetween ? FakeRate::getDIBOverride(demonInBetween) : 0;
@@ -401,7 +402,7 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         }
 
         if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && dbo > 0 && dbo < 21) {
-            auto dibFeature = "";
+            std::string_view dibFeature = "";
             if (feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
             else if (feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
             f->m_betweenDemon = CCSprite::createWithSpriteFrameName(

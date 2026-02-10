@@ -1,7 +1,6 @@
 #include "FakeRate.hpp"
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <jasmine/convert.hpp>
 
 using namespace geode::prelude;
 
@@ -37,12 +36,6 @@ $on_mod(DataSaved) {
 FakeRateSaveData* FakeRate::getFakeRate(GJGameLevel* level) {
     auto it = std::ranges::find(FakeRate::fakeRates, level->m_levelID.value(), &FakeRateSaveData::id);
     return it != FakeRate::fakeRates.end() ? std::to_address(it) : nullptr;
-}
-
-int FakeRate::getDifficultyFromLevel(GJGameLevel* level) {
-    if (level->m_demon > 0) return GJGameLevel::demonIconForDifficulty((DemonDifficultyType)level->m_demonDifficulty);
-    else if (level->m_autoLevel) return -1;
-    else return level->getAverageDifficulty();
 }
 
 std::string FakeRate::getSpriteName(CCSprite* sprite) {
@@ -97,7 +90,7 @@ int FakeRate::getGRDOverride(CCSprite* sprite) {
     auto pos = sprName.find("GrD_demon");
     if (pos == std::string::npos || pos + 9 >= sprName.size()) return 0;
 
-    return jasmine::convert::get<int>(std::move(sprName).substr(9)).value_or(0);
+    return numFromString<int>(std::move(sprName).substr(9)).unwrapOrDefault();
 }
 
 int FakeRate::getDIBOverride(CCSprite* sprite) {
@@ -106,7 +99,7 @@ int FakeRate::getDIBOverride(CCSprite* sprite) {
     auto pos = sprName.find("DIB_");
     if (pos == std::string::npos || pos + 4 >= sprName.size()) return 0;
 
-    return jasmine::convert::get<int>(std::move(sprName).substr(4)).value_or(0);
+    return numFromString<int>(std::move(sprName).substr(4)).unwrapOrDefault();
 }
 
 int FakeRate::getGDDPOverride(CCSprite* sprite) {

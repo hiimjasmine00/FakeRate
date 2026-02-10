@@ -20,7 +20,6 @@ namespace FakeRate {
     extern std::vector<FakeRateSaveData> fakeRates;
 
     FakeRateSaveData* getFakeRate(GJGameLevel*);
-    int getDifficultyFromLevel(GJGameLevel*);
     std::string getSpriteName(cocos2d::CCSprite*);
     void toggle(cocos2d::CCNode*, bool);
     cocos2d::CCPoint getDIBOffset(int, GJDifficultyName);

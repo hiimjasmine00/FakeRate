@@ -13,8 +13,11 @@ protected:
     int m_gddpIntegrationOverride;
     bool m_legacy;
     CCMenuItemSpriteExtra* m_selected;
+    SetFeatureCallback m_callback;
 
     bool init(const FakeRateSaveData&, bool, SetFeatureCallback);
+    void onToggle(cocos2d::CCObject*);
+    void onConfirm(cocos2d::CCObject*);
 public:
     static FRSetFeaturePopup* create(const FakeRateSaveData&, bool, SetFeatureCallback);
 };
