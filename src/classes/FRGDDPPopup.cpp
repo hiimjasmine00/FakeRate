@@ -28,6 +28,7 @@ bool FRGDDPPopup::init(int gddpIntegrationOverride, SetGDDPCallback callback) {
     m_closeBtn->setID("close-button");
     m_noElasticity = true;
     m_gddpIntegrationOverride = gddpIntegrationOverride;
+    m_callback = std::move(callback);
 
     auto table = TableNode::create(4, 4, 250.0f, 180.0f, "gddp-button-row");
     table->setPosition({ 125.0f, 130.0f });

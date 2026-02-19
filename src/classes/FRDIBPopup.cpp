@@ -28,6 +28,7 @@ bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
     m_closeBtn->setID("close-button");
     m_noElasticity = true;
     m_demonsInBetweenOverride = demonsInBetweenOverride;
+    m_callback = std::move(callback);
 
     auto table = TableNode::create(5, 4, 350.0f, 240.0f, "dib-button-row");
     table->setPosition({ 175.0f, 160.0f });
@@ -39,6 +40,7 @@ bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
             CCSprite::createWithSpriteFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02}_btn2_001.png", i).c_str()),
             this, menu_selector(FRDIBPopup::onToggle)
         );
+        toggle->setTag(i);
         toggle->setID(fmt::format("dib-button-{}", i));
         FakeRate::toggle(toggle->getNormalImage(), i == m_demonsInBetweenOverride);
         m_selected = i == m_demonsInBetweenOverride ? toggle : m_selected;

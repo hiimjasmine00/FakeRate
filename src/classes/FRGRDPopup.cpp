@@ -28,6 +28,7 @@ bool FRGRDPopup::init(int grandpaDemonOverride, SetGRDCallback callback) {
     m_closeBtn->setID("close-button");
     m_noElasticity = true;
     m_grandpaDemonOverride = grandpaDemonOverride;
+    m_callback = std::move(callback);
 
     auto table = TableNode::create(3, 2, 250.0f, 130.0f, "grd-button-row");
     table->setContentSize({ 250.0f, 130.0f });

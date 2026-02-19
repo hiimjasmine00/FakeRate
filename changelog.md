@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.18 (2026-02-19)
+- Fixed a bug where the game would crash when trying to set a fake rate difficulty
+
 ## v1.4.17 (2026-02-14)
 - Ported to Geometry Dash v2.208 / Geode SDK v5.0.0
 

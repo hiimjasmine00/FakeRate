@@ -42,6 +42,7 @@ bool FRSetDifficultyPopup::init(const FakeRateSaveData& data, bool legacy, SetDi
     m_demonsInBetweenOverride = data.demonsInBetweenOverride;
     m_gddpIntegrationOverride = data.gddpIntegrationOverride;
     m_legacy = legacy;
+    m_callback = std::move(callback);
 
     auto casual = false;
     auto tough = false;
