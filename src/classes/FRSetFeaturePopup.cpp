@@ -66,8 +66,10 @@ bool FRSetFeaturePopup::init(const FakeRateSaveData& data, bool legacy, SetFeatu
         }
         if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && m_demonsInBetweenOverride > 0) {
             std::string_view dibFeature = "";
-            if (i == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
-            else if (i == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+            if (loader->isModLoaded("adyagd.godlikefaces") && m_demonsInBetweenOverride < 21) {
+                if (i == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
+                else if (i == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+            }
             auto dibSprite = CCSprite::createWithSpriteFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn2_001.png",
                 m_demonsInBetweenOverride, dibFeature).c_str());
             dibSprite->setPosition(

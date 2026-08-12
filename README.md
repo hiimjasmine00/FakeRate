@@ -10,7 +10,7 @@ Expansive level rating customization.
 - [Uproxide](https://gdbrowser.com/u/25397826) - Creator of the More Difficulties mod
 - [ItzKiba](https://gdbrowser.com/u/4569963) - Creator of the Grandpa Demon mod
 - [MochaTheOtter](https://gdbrowser.com/u/6635071) - Creator of the GDDP Integration mod
-- [hiimjasmine00](https://gdbrowser.com/u/7466002) - Creator of the Demons In Between mod and this mod
+- [hiimjasmine00](https://gdbrowser.com/u/7466002) - Creator of the mod and the Demons In Between mod
 
 ## Gallery
 ![Fake Rate Popup](https://raw.githubusercontent.com/hiimjasmine00/FakeRate/refs/heads/master/resources/fake-rate-popup.png)

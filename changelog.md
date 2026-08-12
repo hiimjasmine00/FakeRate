@@ -1,4 +1,8 @@
 # Fake Rate Changelog
+## v1.4.19 (2026-08-12)
+- Added the new Demons In Between difficulties
+- Added compatibility for the new Demons In Between update
+
 ## v1.4.18 (2026-02-19)
 - Fixed a bug where the game would crash when trying to set a fake rate difficulty
 

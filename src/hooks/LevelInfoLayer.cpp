@@ -80,7 +80,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         auto gddpDifficulty = static_cast<CCSprite*>(getChildByID("gddp-difficulty"));
         auto loader = Loader::get();
         auto gddpIntegration = loader->getLoadedMod("minemaker0430.gddp_integration");
-        auto gddpOverride = gddpIntegration ? gddpIntegration->getSettingValue<bool>("override-grandpa-demon") : false;
+        auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between");
+        auto gddpOverride = gddpIntegration && gddpIntegration->getSettingValue<bool>("override-grandpa-demon");
+        auto dibOverride = demonsInBetween && demonsInBetween->getSettingValue<bool>("grandpa-demon-override");
         auto mdo = 0;
         if (auto moreDifficulties = loader->getLoadedMod("uproxide.more_difficulties")) {
             auto casual = moreDifficulties->getSavedValue<bool>("casual", true);
@@ -101,7 +103,8 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         data.feature = level->m_featured > 0 ? level->m_isEpic + 1 : 0;
         data.difficulty = jasmine::level::getDifficulty(m_level);
         data.moreDifficultiesOverride = mdo;
-        data.grandpaDemonOverride = grandpaDemon && (!gddpOverride || !gddpDifficulty) ? FakeRate::getGRDOverride(grandpaDemon) : 0;
+        data.grandpaDemonOverride =
+            grandpaDemon && (!gddpOverride || !gddpDifficulty) && !dibOverride ? FakeRate::getGRDOverride(grandpaDemon) : 0;
         data.demonsInBetweenOverride = demonInBetween ? FakeRate::getDIBOverride(demonInBetween) : 0;
         data.gddpIntegrationOverride =
             gddpDifficulty && (!grandpaDemon || gddpOverride) && !demonInBetween ? FakeRate::getGDDPOverride(gddpDifficulty) : 0;
@@ -126,7 +129,10 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         }
 
         auto hide = false;
+        auto dibOverride = false;
+        auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between");
         if (auto betweenDifficultySprite = static_cast<CCSprite*>(getChildByID("hiimjustin000.demons_in_between/between-difficulty-sprite"))) {
+            dibOverride = demonsInBetween ? demonsInBetween->getSettingValue<bool>("grandpa-demon-override") : false;
             betweenDifficultySprite->setVisible(remove);
             m_difficultySprite->setOpacity(remove ? 0 : 255);
             hide = remove || hide;
@@ -150,7 +156,7 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         auto hasEffects = false;
         auto winSize = CCDirector::get()->getWinSize();
         auto grandpaDemon = loader->getLoadedMod("itzkiba.grandpa_demon");
-        if (grandpaDemon && !gddpOverride) {
+        if (grandpaDemon && !gddpOverride && !dibOverride) {
             removeChildByTag(69420);
             if (animatedFire) removeChildByTag(69420);
             auto hasDemon = false;
@@ -303,7 +309,8 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         background->setZOrder(showBackground ? -10 : -2);
         background->setOpacity(showBackground ? 50 : 255);
         background->setColor(
-            (gddpOverride && remove) || (gio > 0 && (gddpIntegration ? !gddpIntegration->getSettingValue<bool>("restore-bg-color") : false)) ?
+            ((gddpOverride || dibOverride) && remove) ||
+                (gio > 0 && (gddpIntegration ? !gddpIntegration->getSettingValue<bool>("restore-bg-color") : false)) ?
             ccColor3B { 18, 18, 86 } : f->m_backgroundColor);
         static_cast<CCSprite*>(getChildByID("bottom-left-art"))->setOpacity(showBackground ? 50 : 255);
         static_cast<CCSprite*>(getChildByID("bottom-right-art"))->setOpacity(showBackground ? 50 : 255);
@@ -401,10 +408,12 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
             f->m_betweenDemon = nullptr;
         }
 
-        if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && dbo > 0 && dbo < 21) {
+        if (demonsInBetween && dbo > 0 && dbo < 31) {
             std::string_view dibFeature = "";
-            if (feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
-            else if (feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+            if (loader->isModLoaded("adyagd.godlikefaces") && dbo < 21) {
+                if (feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
+                else if (feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+            }
             f->m_betweenDemon = CCSprite::createWithSpriteFrameName(
                 fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn2_001.png", dbo, dibFeature).c_str());
             f->m_betweenDemon->setID("between-difficulty-sprite"_spr);

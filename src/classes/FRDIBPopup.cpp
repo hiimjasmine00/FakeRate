@@ -17,7 +17,7 @@ FRDIBPopup* FRDIBPopup::create(int demonsInBetweenOverride, SetDIBCallback callb
 }
 
 bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
-    if (!Popup::init(350.0f, 310.0f)) return false;
+    if (!Popup::init(370.0f, 310.0f)) return false;
 
     setID("FRDIBPopup");
     setTitle("Demons In Between");
@@ -30,12 +30,13 @@ bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
     m_demonsInBetweenOverride = demonsInBetweenOverride;
     m_callback = std::move(callback);
 
-    auto table = TableNode::create(5, 4, 350.0f, 240.0f, "dib-button-row");
-    table->setPosition({ 175.0f, 160.0f });
+    auto table = TableNode::create(6, 5, 400.0f, 290.0f, "dib-button-row");
+    table->setPosition({ 185.0f, 160.0f });
+    table->setScale(0.825f);
     table->setID("dib-buttons");
     m_mainLayer->addChild(table);
 
-    for (int i = 1; i < 21; i++) {
+    for (int i = 1; i < 31; i++) {
         auto toggle = CCMenuItemSpriteExtra::create(
             CCSprite::createWithSpriteFrameName(fmt::format("hiimjustin000.demons_in_between/DIB_{:02}_btn2_001.png", i).c_str()),
             this, menu_selector(FRDIBPopup::onToggle)
@@ -50,7 +51,7 @@ bool FRDIBPopup::init(int demonsInBetweenOverride, SetDIBCallback callback) {
     table->updateAllLayouts();
 
     auto confirmButton = CCMenuItemSpriteExtra::create(ButtonSprite::create("Confirm", 0.8f), this, menu_selector(FRDIBPopup::onConfirm));
-    confirmButton->setPosition({ 175.0f, 25.0f });
+    confirmButton->setPosition({ 185.0f, 25.0f });
     confirmButton->setID("confirm-button");
     m_buttonMenu->addChild(confirmButton);
 

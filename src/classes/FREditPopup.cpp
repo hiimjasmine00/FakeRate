@@ -315,10 +315,12 @@ void FREditPopup::updateLabels() {
     }
     if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between")) {
         if (!demonsInBetween->getSettingValue<bool>("enable-difficulties")) m_demonsInBetweenOverride = 0;
-        if (m_demonsInBetweenOverride > 0 && m_demonsInBetweenOverride < 21) {
+        if (m_demonsInBetweenOverride > 0 && m_demonsInBetweenOverride < 31) {
             std::string_view dibFeature = "";
-            if (m_feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
-            else if (m_feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+            if (loader->isModLoaded("adyagd.godlikefaces") && m_demonsInBetweenOverride < 21) {
+                if (m_feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
+                else if (m_feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+            }
             m_dibSprite->setDisplayFrame(sfc->spriteFrameByName(
                 fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn2_001.png", m_demonsInBetweenOverride, dibFeature).c_str()));
             m_dibSprite->setPosition(m_difficultySprite->getPosition() + FakeRate::getDIBOffset(m_demonsInBetweenOverride, GJDifficultyName::Long));

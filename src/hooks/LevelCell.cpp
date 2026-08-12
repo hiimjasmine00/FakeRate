@@ -206,11 +206,13 @@ class $modify(FRLevelCell, LevelCell) {
             difficultySprite->setOpacity(0);
         }
 
-        if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && dbo > 0 && dbo < 21) {
+        if (auto demonsInBetween = loader->getLoadedMod("hiimjustin000.demons_in_between"); demonsInBetween && dbo > 0 && dbo < 31) {
             if (demonsInBetween->getSettingValue<bool>("enable-difficulties")) {
                 std::string_view dibFeature = "";
-                if (data->feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
-                else if (data->feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+                if (loader->isModLoaded("adyagd.godlikefaces") && dbo < 21) {
+                    if (data->feature == 3 && demonsInBetween->getSettingValue<bool>("enable-legendary")) dibFeature = "_4";
+                    else if (data->feature == 4 && demonsInBetween->getSettingValue<bool>("enable-mythic")) dibFeature = "_5";
+                }
                 auto dibSprite = CCSprite::createWithSpriteFrameName(
                     fmt::format("hiimjustin000.demons_in_between/DIB_{:02d}{}_btn_001.png", dbo, dibFeature).c_str());
                 dibSprite->setID("between-difficulty-sprite"_spr);

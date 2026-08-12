@@ -19,14 +19,14 @@ struct FakeRateSaveData {
 namespace FakeRate {
     extern std::vector<FakeRateSaveData> fakeRates;
 
-    FakeRateSaveData* getFakeRate(GJGameLevel*);
-    std::string getSpriteName(cocos2d::CCSprite*);
-    void toggle(cocos2d::CCNode*, bool);
-    cocos2d::CCPoint getDIBOffset(int, GJDifficultyName);
-    int getGRDOverride(cocos2d::CCSprite*);
-    int getDIBOverride(cocos2d::CCSprite*);
-    int getGDDPOverride(cocos2d::CCSprite*);
-    std::string getGDDPFrame(int, GJDifficultyName);
+    FakeRateSaveData* getFakeRate(GJGameLevel* level);
+    std::string_view getSpriteName(cocos2d::CCSprite* sprite);
+    void toggle(cocos2d::CCNode* node, bool enabled);
+    cocos2d::CCPoint getDIBOffset(int difficulty, GJDifficultyName name);
+    int getGRDOverride(cocos2d::CCSprite* sprite);
+    int getDIBOverride(cocos2d::CCSprite* sprite);
+    int getGDDPOverride(cocos2d::CCSprite* sprite);
+    std::string getGDDPFrame(int difficulty, GJDifficultyName name);
 }
 
 template<>

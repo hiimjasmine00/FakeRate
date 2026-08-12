@@ -6,7 +6,7 @@ using namespace geode::prelude;
 
 std::vector<FakeRateSaveData> FakeRate::fakeRates;
 
-std::unordered_map<std::string, int> gddpIndices = {
+StringMap<int> gddpIndices = {
     { "Beginner", 1 },
     { "Bronze", 2 },
     { "Silver", 3 },
@@ -38,13 +38,13 @@ FakeRateSaveData* FakeRate::getFakeRate(GJGameLevel* level) {
     return it != FakeRate::fakeRates.end() ? std::to_address(it) : nullptr;
 }
 
-std::string FakeRate::getSpriteName(CCSprite* sprite) {
+std::string_view FakeRate::getSpriteName(CCSprite* sprite) {
     if (auto texture = sprite->getTexture()) {
         auto& textureRect = sprite->getTextureRect();
-        for (auto [key, frame] : CCDictionaryExt<std::string, CCSpriteFrame*>(CCSpriteFrameCache::get()->m_pSpriteFrames)) {
+        for (auto [key, frame] : CCDictionaryExt<const char*, CCSpriteFrame*>(CCSpriteFrameCache::get()->m_pSpriteFrames)) {
             if (frame->getTexture() == texture && frame->getRect() == textureRect) return key;
         }
-        for (auto [key, obj] : CCDictionaryExt<std::string, CCTexture2D*>(CCTextureCache::get()->m_pTextures)) {
+        for (auto [key, obj] : CCDictionaryExt<const char*, CCTexture2D*>(CCTextureCache::get()->m_pTextures)) {
             if (obj == texture) return key;
         }
     }
@@ -65,19 +65,23 @@ void FakeRate::toggle(CCNode* node, bool enabled) {
 }
 
 CCPoint FakeRate::getDIBOffset(int difficulty, GJDifficultyName name) {
-    constexpr std::array<CCPoint, 21> longOffsets = {
+    constexpr std::array<CCPoint, 31> longOffsets = {
         CCPoint { 0.0f, 0.0f },
         { 0.0f, -5.0f }, { 0.125f, -5.0f }, { 0.0f, -5.0f }, { 0.0f, -5.125f }, { 0.25f, -5.0f },
         { 0.125f, -4.75f }, { 0.0f, -5.0f }, { 0.0f, -4.125f }, { -0.125f, -4.125f }, { 0.0f, -4.0f },
         { -0.125f, -4.125f }, { 0.0f, -4.125f }, { 0.125f, -4.125f }, { 0.0f, -4.125f }, { 0.0f, -4.125f },
-        { 0.0f, -3.625f }, { 0.0f, -3.625f }, { 0.0f, -3.5f }, { 0.0f, -3.5f }, { 0.0f, -3.5f }
+        { 0.0f, -3.625f }, { 0.0f, -3.625f }, { 0.0f, -3.5f }, { 0.0f, -3.5f }, { 0.0f, -3.5f },
+        { -0.25f, -3.5f }, { -0.125f, -3.375f }, { -0.25f, -3.5f }, { -0.25f, -3.5f }, { -0.125f, -3.5f },
+        { -0.25f, -3.5f }, { -0.25f, -3.5f }, { 0.0f, -3.5f }, { 0.0f, -3.5f }, { -0.25f, -3.0f }
     };
-    constexpr std::array<CCPoint, 21> shortOffsets = {
+    constexpr std::array<CCPoint, 31> shortOffsets = {
         CCPoint { 0.0f, 0.0f },
         { -0.125f, -0.25f }, { -0.125f, -0.25f }, { -0.125f, -0.25f }, { -0.125f, -0.375f }, { -0.125f, -0.25f },
         { -0.125f, -0.25f }, { -0.125f, -0.375f }, { -0.125f, 0.5f }, { -0.125f, 0.5f }, { -0.125f, 0.25f },
         { -0.125f, 0.5f }, { 0.125f, 0.5f }, { 0.125f, 0.5f }, { 0.125f, 0.5f }, { 0.0f, 0.5f },
-        { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.125f }, { 0.0f, 1.125f }, { 0.0f, 1.125f }
+        { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.125f }, { 0.0f, 1.125f }, { 0.0f, 1.125f },
+        { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.25f },
+        { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.25f }, { 0.0f, 1.75f }
     };
 
     auto& offsets = name == GJDifficultyName::Long ? longOffsets : shortOffsets;
@@ -88,30 +92,33 @@ int FakeRate::getGRDOverride(CCSprite* sprite) {
     auto sprName = getSpriteName(sprite);
 
     auto pos = sprName.find("GrD_demon");
-    if (pos == std::string::npos || pos + 9 >= sprName.size()) return 0;
+    if (pos == std::string_view::npos || pos + 9 >= sprName.size()) return 0;
 
-    return numFromString<int>(std::move(sprName).substr(9)).unwrapOrDefault();
+    sprName.remove_prefix(pos + 9);
+    return numFromString<int>(sprName).unwrapOrDefault();
 }
 
 int FakeRate::getDIBOverride(CCSprite* sprite) {
     auto sprName = getSpriteName(sprite);
 
     auto pos = sprName.find("DIB_");
-    if (pos == std::string::npos || pos + 4 >= sprName.size()) return 0;
+    if (pos == std::string_view::npos || pos + 4 >= sprName.size()) return 0;
 
-    return numFromString<int>(std::move(sprName).substr(4)).unwrapOrDefault();
+    sprName.remove_prefix(pos + 4);
+    return numFromString<int>(sprName).unwrapOrDefault();
 }
 
 int FakeRate::getGDDPOverride(CCSprite* sprite) {
     auto sprName = getSpriteName(sprite);
-    if (sprName.ends_with("Text.png")) sprName = std::move(sprName).substr(0, sprName.size() - 8);
-    if (sprName.ends_with("Small")) sprName = std::move(sprName).substr(0, sprName.size() - 5);
-    if (sprName.ends_with("Plus")) sprName = std::move(sprName).substr(0, sprName.size() - 4);
+    if (sprName.ends_with("Text.png")) sprName.remove_suffix(8);
+    if (sprName.ends_with("Small")) sprName.remove_suffix(5);
+    if (sprName.ends_with("Plus")) sprName.remove_suffix(4);
 
     auto pos = sprName.find("DP_");
-    if (pos == std::string::npos || pos + 3 >= sprName.size()) return 0;
+    if (pos == std::string_view::npos || pos + 3 >= sprName.size()) return 0;
 
-    auto it = gddpIndices.find(std::move(sprName).substr(pos + 3));
+    sprName.remove_prefix(pos + 3);
+    auto it = gddpIndices.find(sprName);
     return it != gddpIndices.end() ? it->second : 0;
 }
 
