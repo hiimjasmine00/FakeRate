@@ -104,7 +104,7 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
         data.difficulty = jasmine::level::getDifficulty(m_level);
         data.moreDifficultiesOverride = mdo;
         data.grandpaDemonOverride =
-            grandpaDemon && (!gddpOverride || !gddpDifficulty) && !dibOverride ? FakeRate::getGRDOverride(grandpaDemon) : 0;
+            grandpaDemon && (!gddpOverride || !gddpDifficulty) && !demonInBetween ? FakeRate::getGRDOverride(grandpaDemon) : 0;
         data.demonsInBetweenOverride = demonInBetween ? FakeRate::getDIBOverride(demonInBetween) : 0;
         data.gddpIntegrationOverride =
             gddpDifficulty && (!grandpaDemon || gddpOverride) && !demonInBetween ? FakeRate::getGDDPOverride(gddpDifficulty) : 0;
