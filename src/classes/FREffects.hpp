@@ -1,4 +1,4 @@
-#include <cocos2d.h>
+#include <Geode/GeneratedPredeclare.hpp>
 
 namespace FREffects {
     cocos2d::CCSprite* grdInfinity();

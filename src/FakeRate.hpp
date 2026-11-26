@@ -1,5 +1,5 @@
 #pragma once
-#include <cocos2d.h>
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/Enums.hpp>
 #include <Geode/GeneratedPredeclare.hpp>
 #include <matjson.hpp>

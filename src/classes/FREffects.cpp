@@ -1,4 +1,7 @@
 #include "FREffects.hpp"
+#include <Geode/cocos/actions/CCActionEase.h>
+#include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
 #include <jasmine/random.hpp>
 
 using namespace geode::prelude;

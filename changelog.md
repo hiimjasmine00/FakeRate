@@ -1,4 +1,7 @@
 # Fake Rate Changelog
+## v1.4.20 (2026-11-26)
+- Ported to Geometry Dash v2.209 / Geode SDK v6.0.0
+
 ## v1.4.19 (2026-08-12)
 - Added the new Demons In Between difficulties
 - Added compatibility for the new Demons In Between update

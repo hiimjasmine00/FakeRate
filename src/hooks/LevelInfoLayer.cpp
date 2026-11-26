@@ -3,6 +3,7 @@
 #include <Geode/binding/GameStatsManager.hpp>
 #include <Geode/binding/GJDifficultySprite.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
+#include <Geode/cocos/particle_nodes/CCParticleSystemQuad.h>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <jasmine/hook.hpp>
@@ -439,9 +440,9 @@ class $modify(FRLevelInfoLayer, LevelInfoLayer) {
 };
 
 #ifdef GEODE_IS_MACOS // Stupid likedItem inline expansion hook
-static_assert(GEODE_COMP_GD_VERSION == 22081, "Please update this hook for the current GD version");
+static_assert(GEODE_COMP_GD_VERSION == 22091, "Please update this hook for the current GD version");
 
-uintptr_t likedItemAddress = base::get() + GEODE_ARM_MAC(0x260ed0) GEODE_INTEL_MAC(0x2c4be0);
+uintptr_t likedItemAddress = base::get() + GEODE_ARM_MAC(0x252ca0) GEODE_INTEL_MAC(0x2b19f0);
 void likedItemHook(LikeItemDelegate* self, LikeItemType type, int id, bool liked) {
     reinterpret_cast<void(*)(LikeItemDelegate*, LikeItemType, int, bool)>(likedItemAddress)(self, type, id, liked);
     base_cast<FRLevelInfoLayer*>(self)->checkFakeRate();

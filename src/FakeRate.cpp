@@ -1,6 +1,8 @@
 #include "FakeRate.hpp"
 #include <Geode/binding/GJGameLevel.hpp>
+#include <Geode/cocos/textures/CCTextureCache.h>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 
 using namespace geode::prelude;
 

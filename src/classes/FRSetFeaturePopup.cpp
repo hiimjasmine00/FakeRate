@@ -1,6 +1,7 @@
 #include "FRSetFeaturePopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/GJDifficultySprite.hpp>
+#include <Geode/cocos/particle_nodes/CCParticleSystemQuad.h>
 #include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
